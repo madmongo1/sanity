@@ -58,10 +58,13 @@ function (sanity_require_mysql mysql_version)
 		endif ()
 		execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} -j4 install 
 						WORKING_DIRECTORY ${build_dir})
-
-
-
-
+		set (MySQL_Found 1)
+		set (MySQL_INCLUDE_DIRS ${sanity.target.local}/include)
+		set (MySQL_LIBRARY_DIRS ${sanity.target.local}/lib)
+		set (MySQL_LIBRARIES ${sanity.target.local}/lib/libmysqlclient_r.a)
 	endif()
+
+	# now that we have built, we can set the cache values for this module 
+	sanity_propagate_vars (MySQL_Found MySQL_INCLUDE_DIRS MySQL_LIBRARY_DIRS MySQL_LIBRARIES)
 
 endfunction ()

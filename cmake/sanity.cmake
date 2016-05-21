@@ -83,6 +83,18 @@ function (sanity_list_to_string result delim)
     set(${result} "${temp}" PARENT_SCOPE)
 endfunction()
 
+macro (sanity_propagate_vars)
+	foreach (var ${ARGN})
+		list (APPEND sanity.propagate.list ${var})
+	endforeach()
+	set (sanity.propagate.list ${sanity.propagate.list} PARENT_SCOPE)
+message(STATUS "------ ${sanity.propagate.list}")
+	foreach (var IN LISTS sanity.propagate.list)
+		set (${var} ${${var}} PARENT_SCOPE)
+message(STATUS "-------- ${var} = ${${var}}")
+	endforeach()
+endmacro()
+
 function (sanity_require libname version)
 
 	set (sanity.valid.libs mysql)
@@ -96,7 +108,7 @@ function (sanity_require libname version)
     	sanity_require_mysql (${version})
     endif ()
 
-
+	sanity_propagate_vars()
 
 endfunction()
 
