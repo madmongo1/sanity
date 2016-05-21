@@ -44,7 +44,7 @@ function (sanity_require_mysql mysql_version)
 		    endif ()
 		 endif()
 
-		 set (build_dir ${sanity.target.build}/${package_name})
+		set (build_dir ${sanity.target.build}/${package_name})
 		file(MAKE_DIRECTORY ${build_dir})
 		message(STATUS "executing : ${CMAKE_COMMAND} ${source_tree}")
 		message(STATUS "directory : ${build_dir}")
@@ -65,6 +65,19 @@ function (sanity_require_mysql mysql_version)
 		set (MySQL_INCLUDE_DIRS ${sanity.target.local}/include)
 		set (MySQL_LIBRARY_DIRS ${sanity.target.local}/lib)
 		set (MySQL_LIBRARIES ${sanity.target.local}/lib/libmysqlclient_r.a)
+
+		find_package(Threads)
+		add_library(mysql INTERFACE IMPORTED GLOBAL)
+		target_link_libraries(mysql INTERFACE 
+			${MySQL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
+			${CMAKE_DL_LIBS})
+
+			sanity_propagate_vars(CMAKE_THREAD_LIBS_INIT 
+								  CMAKE_USE_SPROC_INIT
+								  CMAKE_USE_WIN32_THREADS_INIT
+								  CMAKE_USE_PTHREADS_INIT
+								  CMAKE_HP_PTHREADS_INIT
+								  CMAKE_DL_LIBS)
 	endif()
 
 	# now that we have built, we can set the cache values for this module 
