@@ -49,7 +49,10 @@ function (sanity_require_mysql mysql_version)
 		message(STATUS "executing : ${CMAKE_COMMAND} ${source_tree}")
 		message(STATUS "directory : ${build_dir}")
 		execute_process(
-    		COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${sanity.target.local} ${source_tree}
+    		COMMAND ${CMAKE_COMMAND}
+			-DCMAKE_CXX_FLAGS=-std=c++11 
+			-DCMAKE_INSTALL_PREFIX=${sanity.target.local} 
+			${source_tree}
     		WORKING_DIRECTORY ${build_dir}
     		RESULT_VARIABLE res
 		)
