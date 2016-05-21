@@ -13,11 +13,16 @@ function (sanity_require_mysql mysql_version)
 
 		if (sanity.mysql.version VERSION_LESS mysql_version)
 			message (FATAL_ERROR "mysql version ${mysql_version} specified but lower version ${sanity.mysql.version} already built")
+			return()
 		endif()
 
 		list (FIND versions "${sanity.mysql.version}" version_index)
 		if (version_index LESS 0)
 			message (FATAL_ERROR "unknown version of mysql: ${sanity.mysql.version}")
+		endif ()
+
+		if (sanity.require_mysql.complete)
+			return ()
 		endif ()
 
 		set (package_name "mysql-connector-c-${mysql_version}-src")
@@ -72,12 +77,15 @@ function (sanity_require_mysql mysql_version)
 			${MySQL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
 			${CMAKE_DL_LIBS})
 
+		set (sanity.require_mysql.complete TRUE)
+
 			sanity_propagate_vars(CMAKE_THREAD_LIBS_INIT 
 								  CMAKE_USE_SPROC_INIT
 								  CMAKE_USE_WIN32_THREADS_INIT
 								  CMAKE_USE_PTHREADS_INIT
 								  CMAKE_HP_PTHREADS_INIT
-								  CMAKE_DL_LIBS)
+								  CMAKE_DL_LIBS
+								  sanity.require_mysql.complete)
 	endif()
 
 	# now that we have built, we can set the cache values for this module 

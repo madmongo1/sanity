@@ -53,6 +53,7 @@ if (NOT sanity.host.build)
 endif ()
 file(MAKE_DIRECTORY ${sanity.host.build})
 
+
 function (sanity_dump)
 	message (STATUS "Sanity Settings")
 	set (vars 	sanity.version sanity.source.cache sanity.source.cache.flags sanity.source.cache.archive
@@ -93,10 +94,10 @@ macro (sanity_propagate_vars)
 		endif ()
 	endforeach()
 	set (sanity.propagate.list ${sanity.propagate.list} PARENT_SCOPE)
-message(STATUS "------ ${sanity.propagate.list}")
+#message(STATUS "------ ${sanity.propagate.list}")
 	foreach (var IN LISTS sanity.propagate.list)
 		set (${var} ${${var}} PARENT_SCOPE)
-message(STATUS "-------- ${var} = ${${var}}")
+#message(STATUS "-------- ${var} = ${${var}}")
 	endforeach()
 endmacro()
 
@@ -121,7 +122,7 @@ function (sanity_require)
 		set (version ${SANITY_REQUIRE_VERSION})
 	endif ()
 
-	set (sanity.valid.libs mysql)
+	set (sanity.valid.libs mysql mysqlcppcon)
 	list (FIND sanity.valid.libs ${libname} 
 		  name_index)
     if (name_index LESS 0)
@@ -133,9 +134,19 @@ function (sanity_require)
     	sanity_require_mysql (${version})
     endif ()
 
+    if (libname STREQUAL "mysqlcppcon")
+    	sanity_require_mysqlcppcon (${version})
+    endif ()
+
+    if (libname STREQUAL "boost")
+    	sanity_require_boost (${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
 
 
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
