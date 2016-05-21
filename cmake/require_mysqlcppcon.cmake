@@ -3,8 +3,9 @@ function (sanity_require_mysqlcppcon version)
     set (latest_version 1.1.7)
 
 	set (versions 1.1.7)
-	set (mysql_versions 6.1.6)
 	set (hashes 4b0425811bca23c0323b97e787b7709e)
+	set (mysql_versions 6.1.6)
+	set (boost_versions 1.54.0)
 
 	if (version STREQUAL "latest")
 		sanity_require_mysqlcppcon (${latest_version})
@@ -28,6 +29,8 @@ function (sanity_require_mysqlcppcon version)
 
 		list (GET mysql_versions ${version_index} mysql_version)
 		sanity_require (LIBRARY mysql VERSION ${mysql_version})
+		list (GET boost_versions ${version_index} boost_version)
+		sanity_require (LIBRARY boost VERSION ${boost_version})
 
 		set (package_name "mysql-connector-c++-${version}")
 		set (source_url "https://dev.mysql.com/get/Downloads/Connector-C++/${package_name}.tar.gz")

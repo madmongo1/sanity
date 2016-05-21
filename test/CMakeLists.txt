@@ -14,6 +14,5 @@ message(STATUS "MySQL_LIBRARIES = ${MySQL_LIBRARIES}")
 
 
 add_executable(test_include_and_link test_include_and_link.cpp)
-target_include_directories(test_include_and_link SYSTEM PRIVATE ${MySQL_INCLUDE_DIRS})
-target_link_libraries(test_include_and_link mysql)
+target_link_libraries(test_include_and_link mysql boost_thread)
 

@@ -38,6 +38,11 @@ if (NOT sanity.target.local)
 endif ()
 file(MAKE_DIRECTORY ${sanity.target.local})
 
+if (NOT sanity.target.local.source)
+	set (sanity.target.local.source "${sanity.target.local}/src" CACHE PATH "the src path for target builds if needed")
+endif ()
+file(MAKE_DIRECTORY ${sanity.target.local.source})
+
 if (NOT sanity.target.build)
 	set (sanity.target.build "${CMAKE_CURRENT_BINARY_DIR}/target_build" CACHE PATH "the build path for files required by the target build")
 endif ()
@@ -122,7 +127,7 @@ function (sanity_require)
 		set (version ${SANITY_REQUIRE_VERSION})
 	endif ()
 
-	set (sanity.valid.libs mysql mysqlcppcon)
+	set (sanity.valid.libs boost mysql mysqlcppcon)
 	list (FIND sanity.valid.libs ${libname} 
 		  name_index)
     if (name_index LESS 0)

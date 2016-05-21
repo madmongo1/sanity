@@ -1,4 +1,11 @@
 #include <mysql.h>
+#include <boost/optional.hpp>
+#include <boost/thread.hpp>
+
+void foo()
+{
+
+}
 
 int main()
 {
@@ -8,6 +15,12 @@ int main()
 		mysql_close(&mysql);
 	}
 
+
+	// test boost
+	boost::optional<int> oi(4);
+
+	auto t = boost::thread{ &foo };
+	t.join();
 
 	return 0;
 }
