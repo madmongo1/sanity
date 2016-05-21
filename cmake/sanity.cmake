@@ -1,0 +1,104 @@
+cmake_minimum_required(VERSION 3.5)
+set (sanity.constant.this.version 1)
+
+if (sanity.version)
+	if (sanity.version VERSION_LESS sanity.constant.this.version)
+		message (FATAL_ERROR "Sanity version ${sanity.version} in outer project. This is version ${sanity.constant.this.version} here: ${CMAKE_CURRENT_LIST_FILE}")
+	endif ()
+else ()
+	set (sanity.version "1" CACHE STRING "current sanity version - do not change")
+endif ()
+
+# set up location variables for all future sanity builds
+
+if (NOT sanity.source.cache)
+	set (sanity.source.cache "$ENV{HOME}/.sanity-cache" CACHE PATH "cache directory for sanity downloads")
+endif ()
+file(MAKE_DIRECTORY ${sanity.source.cache})
+
+if (NOT sanity.source.cache.flags)
+	set (sanity.source.cache.flags "${sanity.source.cache}/flags" CACHE PATH "cache directory for sanity downloads")
+endif ()
+file(MAKE_DIRECTORY ${sanity.source.cache.flags})
+
+if (NOT sanity.source.cache.archive)
+	set (sanity.source.cache.archive "${sanity.source.cache}/archive" CACHE PATH "cache directory for sanity downloads")
+endif ()
+file(MAKE_DIRECTORY ${sanity.source.cache.archive})
+
+if (NOT sanity.source.cache.archive.source)
+	set (sanity.source.cache.source "${sanity.source.cache}/src" CACHE PATH "cache directory for sanity downloads")
+endif ()
+file(MAKE_DIRECTORY ${sanity.source.cache.source})
+
+if (NOT sanity.target.local)
+	set (sanity.target.local "${CMAKE_CURRENT_BINARY_DIR}/target_local" CACHE PATH "the install path for files required by the target build")
+endif ()
+file(MAKE_DIRECTORY ${sanity.target.local})
+
+if (NOT sanity.target.build)
+	set (sanity.target.build "${CMAKE_CURRENT_BINARY_DIR}/target_build" CACHE PATH "the build path for files required by the target build")
+endif ()
+file(MAKE_DIRECTORY ${sanity.target.build})
+
+if (NOT sanity.host.local)
+	set (sanity.host.local "${CMAKE_CURRENT_BINARY_DIR}/host_local" CACHE PATH "the install path for files required by the host build environemnt")
+endif ()
+file(MAKE_DIRECTORY ${sanity.host.local})
+
+if (NOT sanity.host.build)
+	set (sanity.host.build "${CMAKE_CURRENT_BINARY_DIR}/host_build" CACHE PATH "the build path for files required by the host build environment")
+endif ()
+file(MAKE_DIRECTORY ${sanity.host.build})
+
+function (sanity_dump)
+	message (STATUS "Sanity Settings")
+	set (vars 	sanity.version sanity.source.cache sanity.source.cache.flags sanity.source.cache.archive
+				sanity.source.cache.source sanity.target.local sanity.target.build sanity.host.local sanity.host.build)
+	set (maxlen 0)
+	foreach (name IN LISTS vars)
+		string(LENGTH "${name}" thislen)
+		if (thislen GREATER maxlen)
+			set(maxlen ${thislen})
+		endif ()
+	endforeach ()
+	foreach (name IN LISTS vars)
+		set(namerep "${name}")
+		string(LENGTH "${namerep}" thislen)
+		while (thislen LESS maxlen)
+		    string(CONCAT namerep "${namerep}" " ")
+			string(LENGTH "${namerep}" thislen)
+		endwhile()
+		message ("    ${namerep} : ${${name}}")
+	endforeach ()
+endfunction ()
+
+function (sanity_list_to_string result delim)
+    list(GET ARGV 2 temp)
+    math(EXPR N "${ARGC}-1")
+    foreach(IDX RANGE 3 ${N})
+        list(GET ARGV ${IDX} STR)
+        set(temp "${temp}${delim}${STR}")
+    endforeach()
+    set(${result} "${temp}" PARENT_SCOPE)
+endfunction()
+
+function (sanity_require libname version)
+
+	set (sanity.valid.libs mysql)
+	list (FIND sanity.valid.libs ${libname} name_index)
+    if (name_index LESS 0)
+        sanity_list_to_string(rep ", " ${sanity.valid.libs})
+    	message (FATAL_ERROR "unknown required library: ${libname}. Valid libraries are: ${rep}")
+    endif ()
+
+    if (libname STREQUAL "mysql")
+    	sanity_require_mysql (${version})
+    endif ()
+
+
+
+endfunction()
+
+
+include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
