@@ -150,8 +150,17 @@ function (sanity_require_mysqlcppcon version)
 	
 	set (MySQLCppCon_Found TRUE)
 	set (MySQLCppCon_INCLUDE_DIRS "${sanity.target.local}/include")
-	set (MySQLCppCon_LIBRARY_DIRS "${sanity.target.local}/lib")
-	set (MySQLCppCon_LIBRARIES "${sanity.target.local}/lib/libmysqlcppconn-static.a")
+	
+	if(EXISTS "${sanity.target.local}/lib/libmysqlcppconn-static.a")
+    	set (MySQLCppCon_LIBRARIES "${sanity.target.local}/lib/libmysqlcppconn-static.a")
+    	set (MySQLCppCon_LIBRARY_DIRS "${sanity.target.local}/lib")
+	elseif(EXISTS "${sanity.target.local}/lib64/libmysqlcppconn-static.a")
+	    set (MySQLCppCon_LIBRARY_DIRS "${sanity.target.local}/lib64")
+	    set (MySQLCppCon_LIBRARIES "${sanity.target.local}/lib64/libmysqlcppconn-static.a")
+	else()
+	    message(FATAL_ERROR "No library found for libmysqlcppcon")
+	endif()
+	
 
 	find_package(Threads)
 	add_library(mysqlcppcon INTERFACE IMPORTED GLOBAL)
