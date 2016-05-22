@@ -139,7 +139,7 @@ function (sanity_require_mysqlcppcon version)
 #
 	sanity_make_flag(run_make_flag "target" "${package_name}" "make")
 	if ("${run_cmake_flag}" IS_NEWER_THAN "${run_make_flag}")
-		execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} -j4 install 
+		execute_process(COMMAND make -j4 install 
 						WORKING_DIRECTORY ${build_dir}
 						RESULT_VARIABLE res)
 		if (res)

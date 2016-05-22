@@ -51,8 +51,6 @@ function (sanity_require_mysql mysql_version)
 
 		set (build_dir ${sanity.target.build}/${package_name})
 		file(MAKE_DIRECTORY ${build_dir})
-		message(STATUS "executing : ${CMAKE_COMMAND} ${source_tree}")
-		message(STATUS "directory : ${build_dir}")
 		execute_process(
     		COMMAND ${CMAKE_COMMAND}
 			-DCMAKE_CXX_FLAGS=-std=c++11 
@@ -64,7 +62,7 @@ function (sanity_require_mysql mysql_version)
 		if (res)
 			message (FATAL_ERROR "${CMAKE_COMMAND} ${source_tree} : error code : ${res}")
 		endif ()
-		execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} -j4 install 
+		execute_process(COMMAND make -j4 install 
 						WORKING_DIRECTORY ${build_dir})
 		set (MySQL_Found 1)
 		set (MySQL_INCLUDE_DIRS ${sanity.target.local}/include)
