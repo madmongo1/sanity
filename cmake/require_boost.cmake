@@ -80,9 +80,14 @@ function (sanity_require_boost version)
 								runtime-link=shared "cxxflags=-std=${stdcpp.version}"
 								-j4 install
 						WORKING_DIRECTORY ${build_dir}
+          				ERROR_VARIABLE err_stream
 						RESULT_VARIABLE res)
 		if (res)
-			message (FATAL_ERROR "./b2 variant=release link=static threading=multi runtime-link=shared cxxflags=-std=${stdcpp.version}: ${res}")
+			message (STATUS "./b2 variant=release link=static threading=multi runtime-link=shared cxxflags=-std=${stdcpp.version}: ${res}")
+			set (error_path "${sanity.target.local}/errors")
+			file (MAKE_DIRECTORY "${error_path}")
+			message (STATUS "writing boost build errors to ${error_path}/boost.err")
+			file (WRITE "${error_path}/boost.err" "${err_stream}")
 		endif ()
 
 		set (Boost_FOUND TRUE)
