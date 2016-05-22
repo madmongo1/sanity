@@ -2,6 +2,8 @@
 #include <boost/optional.hpp>
 #include <boost/thread.hpp>
 
+#include <cppconn/connection.h>
+
 void foo()
 {
 

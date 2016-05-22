@@ -64,6 +64,17 @@ endif ()
 file(MAKE_DIRECTORY ${sanity.host.build})
 
 
+function (sanity_join outvar separator)
+	set (result)
+	set (sep)
+	foreach (item ${ARGN})
+		string(CONCAT result "${result}" "${sep}" "${item}")
+		set (sep "${separator}")
+	endforeach ()
+	set (${outvar} "${result}" PARENT_SCOPE)
+
+endfunction ()
+
 function (sanity_make_flag outvar flag_type)
 
 	set (result )

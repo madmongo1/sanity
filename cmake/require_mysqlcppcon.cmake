@@ -1,9 +1,10 @@
 function (sanity_require_mysqlcppcon version)
 
-    set (latest_version 1.1.7)
+# NOTE: 1.1.7 does not currently compile against the latest c connector
+    set (latest_version 1.1.6)
 
-	set (versions 1.1.7)
-	set (hashes 4b0425811bca23c0323b97e787b7709e)
+	set (versions 1.1.6)
+	set (hashes 9e49dcfc1408b18b3d3ca02781ff7efb)
 	set (mysql_versions 6.1.6)
 	set (boost_versions 1.54.0)
 
@@ -39,12 +40,12 @@ function (sanity_require_mysqlcppcon version)
 		file(DOWNLOAD ${source_url} 
 			${source_gz} 
 			SHOW_PROGRESS
-	     	EXPECTED_HASH MD5=${source_hash} 
-	     )
+	     	EXPECTED_HASH MD5=${source_hash})
+	    set (source_tree "${sanity.source.cache.source}/${package_name}")
 
-	     set (source_tree "${sanity.source.cache.source}/${package_name}")
+	    sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
 
-	     if (NOT EXISTS ${src_tree})
+	    if ("${source_url}" IS_NEWER_THAN "${untar_flag}")
 	     	execute_process(
     			COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
     			WORKING_DIRECTORY ${sanity.source.cache.source}
@@ -53,23 +54,43 @@ function (sanity_require_mysqlcppcon version)
 		    if (res)
 		    	message(FATAL_ERROR "error in command tar xzf ${source_gz} : ${res}")
 		    endif ()
-		 endif()
+		    sanity_touch_flag(untar_flag)
+		endif()
 
 		set (build_dir ${sanity.target.build}/${package_name})
-		file(MAKE_DIRECTORY ${build_dir})
-		message(STATUS "executing : ${CMAKE_COMMAND} ${source_tree}")
-		message(STATUS "directory : ${build_dir}")
-#		execute_process(
- #   		COMMAND ${CMAKE_COMMAND}
-#			-DCMAKE_CXX_FLAGS=-std=c++11 
-#			-DCMAKE_INSTALL_PREFIX=${sanity.target.local} 
-#			${source_tree}
- #   		WORKING_DIRECTORY ${build_dir}
-  #  		RESULT_VARIABLE res
-#		)
-#		if (res)
-#			message (FATAL_ERROR "${CMAKE_COMMAND} ${source_tree} : error code : ${res}")
-#		endif ()
+		sanity_make_flag(run_cmake_flag "target" "${package_name}" "cmake")
+		if ("${untar_flag}" IS_NEWER_THAN "${run_cmake_flag}")
+			sanity_join(mysql_libs " " ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+			file(MAKE_DIRECTORY ${build_dir})
+			message(STATUS "executing : ${CMAKE_COMMAND} ${source_tree}")
+			message(STATUS "directory : ${build_dir}")
+			set (args)
+			list(APPEND args 	   			
+				-DBOOST_ROOT=${Boost_ROOT}
+	   			-DBoost_NO_SYSTEM_PATHS=ON
+	   			"-DBOOST_INCLUDEDIR=${sanity.target.local}/include"
+	   			"-DBOOST_LIBRARYDIR=${sanity.target.local}/lib"
+				-DCMAKE_ENABLE_C++11=ON
+				-DMYSQLCLIENT_STATIC_LINKING=ON
+				"-DCMAKE_INSTALL_PREFIX=${sanity.target.local}"
+				"-DMYSQL_DIR=${sanity.target.local}"
+				"-DDMYSQL_INCLUDE_DIR=${sanity.target.local}/include"
+				"-DMYSQL_LIB_DIR=${sanity.target.local}/lib")
+			if (NOT "${mysql_libs}" STREQUAL "") 
+				list (APPEND args
+				"-DMYSQL_LINK_FLAGS=\"${mysql_libs}\"")
+			endif ()
+			execute_process(
+	   			COMMAND ${CMAKE_COMMAND}
+	   			${args}
+				${source_tree}
+	   			WORKING_DIRECTORY ${build_dir}
+ 	 			RESULT_VARIABLE res)
+			if (res)
+				message (FATAL_ERROR "${CMAKE_COMMAND} ${source_tree} : error code : ${res}")
+			endif ()
+			sanity_touch_flag(run_cmake_flag)
+		endif ()
 #		execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} -j4 install 
 #						WORKING_DIRECTORY ${build_dir})
 #		set (MySQL_Found 1)
