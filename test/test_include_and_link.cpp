@@ -2,7 +2,7 @@
 #include <boost/optional.hpp>
 #include <boost/thread.hpp>
 
-#include <cppconn/connection.h>
+#include <cppconn/driver.h>
 
 void foo()
 {
@@ -23,6 +23,10 @@ int main()
 
 	auto t = boost::thread{ &foo };
 	t.join();
+
+	// test mysqlcppconn
+
+	auto driver = get_driver_instance();
 
 	return 0;
 }

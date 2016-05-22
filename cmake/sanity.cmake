@@ -7,8 +7,9 @@ if (sanity.version)
 		message (FATAL_ERROR 
 				 "Sanity version ${sanity.version} in outer project. This is version ${sanity.constant.this.version} here: ${CMAKE_CURRENT_LIST_FILE}")
 	endif ()
+	return ()
 else ()
-	set (sanity.version "1" CACHE STRING "current sanity version - do not change")
+	set (sanity.version "1" PARENT_SCOPE)
 endif ()
 
 # set up location variables for all future sanity builds
