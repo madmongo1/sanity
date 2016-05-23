@@ -206,6 +206,7 @@ function (sanity_require)
 	set (sanity.valid.libs 
 		boost
 		gtest 
+		icu
 		openssl
 		mysql 
 		mysqlcppcon)
@@ -236,6 +237,10 @@ function (sanity_require)
     	sanity_require_gtest(${version})
     endif ()
 
+    if (libname STREQUAL "icu")
+    	sanity_require_icu(${version})
+	endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -243,6 +248,7 @@ endfunction()
 
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")

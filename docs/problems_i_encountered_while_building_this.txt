@@ -1,0 +1,6 @@
+1. on OSX, CMAKE's FIND(DOWNLOAD) proved unreliable downloading opensll for some reason.
+
+To workaround this, there is a function called sanity_download(...) which will try the internal
+file(DOWNLOAD) function first, and then fall back to curl. If you see the same problem, make sure
+you have installed curl (brew install curl)
+

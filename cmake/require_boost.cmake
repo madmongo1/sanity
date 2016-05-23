@@ -1,40 +1,26 @@
-function (sanity_require_boost version)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
-    set (latest_version 1.61.0)
+function (sanity_require_boost given_version)
+
 	set (versions 1.61.0)
 	set (hashes 6095876341956f65f9d35939ccea1a9f)
+	sanity_back(versions latest_version)
 
-	if (version STREQUAL "latest")
-		sanity_require_boost (${latest_version})
-		sanity_propagate_vars ()
-		return()
+	sanity_deduce_version(${given_version} versions boost version version_index)
+	if (NOT version)
+		message (FATAL_ERROR "unable to deduce version")
 	endif ()
 
-	if (NOT sanity.boost.version)
-		if (version VERSION_LESS latest_version)
-			set (version ${latest_version})
-		endif ()
-		set(sanity.boost.version ${version} CACHE STRING "version of boost chosen")
-	endif ()
-
-	if (sanity.boost.version VERSION_LESS version)
-		message (FATAL_ERROR "boost version ${version} specified but lower version ${sanity.boost.version} already built")
-		return()
-	endif()
-
-	if (version VERSION_LESS sanity.boost.version)
-		set (version "${sanity.boost.version}")
-	endif ()
-
-
-	list (FIND versions "${sanity.boost.version}" version_index)
-	if (version_index LESS 0)
-		message (FATAL_ERROR "unknown version of boost: ${sanity.boost.version}")
-	endif ()
-
-	if (sanity.boost.complete)
+	if (sanity.require_boost.complete)
 		return ()
 	endif ()
+
+	#
+	# prerequisites
+	#
+	sanity_require (LIBRARY openssl VERSION any)
+	sanity_require (LIBRARY icu VERSION any)
 
 	string(REPLACE "." "_" boost_version_name "${version}")
 	set (package_name "boost_${boost_version_name}")
@@ -52,8 +38,8 @@ function (sanity_require_boost version)
 
 	sanity_make_flag(untar_flag "target" "${package_name}" "untar")
 
-	if (${source_gz} IS_NEWER_THAN ${untar_flag})
-#	if (NOT EXISTS source_tree OR NOT EXISTS untar_flag)
+	if (${source_gz} IS_NEWER_THAN ${untar_flag}
+		OR ${source_gz} IS_NEWER_THAN ${source_tree})
 		execute_process(
     		COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
     		WORKING_DIRECTORY ${sanity.target.local.source}
@@ -72,11 +58,12 @@ function (sanity_require_boost version)
 	endif ()
 
 	set (build_dir ${source_tree})
+	set (build_dir "${sanity.target.build}/${package_name}")
 	
 	sanity_make_flag(bootstrap_flag "target" "${package_name}" "bootstrap")
 	if (${untar_flag} IS_NEWER_THAN ${bootstrap_flag})
 		execute_process(COMMAND ./bootstrap.sh --prefix=${sanity.target.local}
-						WORKING_DIRECTORY ${build_dir}
+						WORKING_DIRECTORY ${source_tree}
 						RESULT_VARIABLE res)
 		if (res)
 			message (FATAL_ERROR "./bootstrap.sh --prefix=${sanity.target.local} : ${res}")
@@ -85,15 +72,33 @@ function (sanity_require_boost version)
 	endif ()
 
 	sanity_make_flag(build_boost_flag "target" "${package_name}" "build")
+	find_package(Threads)
+
 	if (${bootstrap_flag} IS_NEWER_THAN ${build_boost_flag})
-		execute_process(COMMAND ./b2 variant=release link=static threading=multi 
-								runtime-link=shared "cxxflags=-std=${stdcpp.version}"
-								-j4 install
-						WORKING_DIRECTORY ${build_dir}
+		file(MAKE_DIRECTORY ${build_dir})
+		set (b2_args)
+		list (APPEND b2_args "--build-dir=${build_dir}"
+							"variant=release" 
+							"link=static" 
+							"threading=multi" 
+							"runtime-link=shared" 
+							"cxxflags=-std=${stdcpp.version}"
+							"-j${sanity.concurrency}"
+							"-sICU_PATH=${sanity.target.local}")
+		if (APPLE)
+		elseif (UNIX)
+			list (APPEND b2_args "linkflags=-lpthread -ldl")
+		endif ()
+		sanity_join(arg_string " " ${b2_args})
+		message (STATUS "args: ${b2_args}")
+		execute_process(COMMAND ./b2 
+						${b2_args}
+						install
+						WORKING_DIRECTORY ${source_tree}
           				ERROR_VARIABLE err_stream
 						RESULT_VARIABLE res)
 		if (res)
-			message (STATUS "./b2 variant=release link=static threading=multi runtime-link=shared cxxflags=-std=${stdcpp.version}: ${res}")
+			message (STATUS "build failure: ${res}")
 			set (error_path "${sanity.target.local}/errors")
 			file (MAKE_DIRECTORY "${error_path}")
 			message (STATUS "writing boost build errors to ${error_path}/boost.err")

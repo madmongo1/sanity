@@ -118,15 +118,6 @@ error code : ${res}"
 	set (OPENSSL_VERSION "${version}")
 
 	find_package(Threads)
-	if (NOT TARGET sanity::openssl)
-		add_library(sanity::openssl INTERFACE IMPORTED GLOBAL)
-		target_link_libraries(sanity::openssl INTERFACE 
-			${OPENSSL_SSL_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} 
-			${CMAKE_DL_LIBS})
-		set_property(TARGET sanity::openssl
-			APPEND 
-			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR})
-	endif ()
 
 	if (NOT TARGET sanity::crypto)
 		add_library(sanity::crypto INTERFACE IMPORTED GLOBAL)
@@ -134,6 +125,16 @@ error code : ${res}"
 			${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} 
 			${CMAKE_DL_LIBS})
 		set_property(TARGET sanity::crypto
+			APPEND 
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR})
+	endif ()
+
+	if (NOT TARGET sanity::openssl)
+		add_library(sanity::openssl INTERFACE IMPORTED GLOBAL)
+		target_link_libraries(sanity::openssl INTERFACE 
+			${OPENSSL_SSL_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} 
+			${CMAKE_DL_LIBS} sanity::crypto)
+		set_property(TARGET sanity::openssl
 			APPEND 
 			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR})
 	endif ()

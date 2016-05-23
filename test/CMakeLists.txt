@@ -9,6 +9,8 @@ endif ()
 add_subdirectory (gtest_only)
 add_subdirectory (mysql_only)
 add_subdirectory (openssl_only)
+add_subdirectory (boost_only)
+add_subdirectory (icu_only)
 
 return()
 
