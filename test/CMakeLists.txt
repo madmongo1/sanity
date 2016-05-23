@@ -8,7 +8,9 @@ endif ()
 
 add_subdirectory (gtest_only)
 add_subdirectory (mysql_only)
+add_subdirectory (openssl_only)
 
+return()
 
 #deliberately include more than once to test that this has no effect
 include(../cmake/sanity.cmake)

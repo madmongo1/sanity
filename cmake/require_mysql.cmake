@@ -69,7 +69,7 @@ function (sanity_require_mysql mysql_version)
 
 	sanity_make_flag(make_flag "source.cache" "${package_name}" "make")
 	if (${configure_flag} IS_NEWER_THAN ${make_flag})
-		execute_process(COMMAND make -j4 install 
+		execute_process(COMMAND make "-j${sanity.concurrency}" install 
 						WORKING_DIRECTORY ${build_dir}
 						RESULT_VARIABLE res)
 		if (res)

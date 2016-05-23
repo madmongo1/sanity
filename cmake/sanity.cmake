@@ -13,6 +13,29 @@ else ()
 	set (sanity.root ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "Where the sanity scripts are located")
 endif ()
 
+#
+# concurrency
+#
+set (sanity.concurrency 4)
+if (CMAKE_HOST_APPLE)
+	execute_process(COMMAND sysctl -n hw.ncpu 
+					RESULT_VARIABLE err 
+					OUTPUT_VARIABLE cout
+					OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (NOT err AND ${cout} GREATER 0)
+		set (sanity.concurrency ${cout})
+	endif ()
+elseif (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
+	execute_process(COMMAND cat /proc/cpuinfo 
+					COMMAND grep processor
+					COMMAND wc -l
+					OUTPUT_VARIABLE cout
+					OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (NOT err AND ${cout} GREATER 0)
+		set (sanity.concurrency ${cout})
+	endif ()
+endif ()
+
 # set up location variables for all future sanity builds
 
 if (NOT sanity.source.cache)
@@ -104,7 +127,7 @@ function (sanity_dump)
 	message (STATUS "Sanity Settings")
 	set (vars 	sanity.version sanity.source.cache sanity.source.cache.flags sanity.source.cache.archive
 				sanity.source.cache.source sanity.target.local sanity.target.build sanity.host.local sanity.host.build
-				sanity.target.flags)
+				sanity.target.flags sanity.concurrency)
 	set (maxlen 0)
 	foreach (name IN LISTS vars)
 		string(LENGTH "${name}" thislen)
@@ -183,6 +206,7 @@ function (sanity_require)
 	set (sanity.valid.libs 
 		boost
 		gtest 
+		openssl
 		mysql 
 		mysqlcppcon)
 	list (FIND sanity.valid.libs ${libname} 
@@ -200,6 +224,10 @@ function (sanity_require)
     	sanity_require_mysqlcppcon (${version})
     endif ()
 
+    if (libname STREQUAL "openssl")
+    	sanity_require_openssl (${version})
+    endif ()
+
     if (libname STREQUAL "boost")
     	sanity_require_boost (${version})
     endif ()
@@ -213,7 +241,11 @@ function (sanity_require)
 endfunction()
 
 
-include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
-include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
+
+sanity_dump ()
+
