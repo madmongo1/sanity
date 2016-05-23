@@ -1,40 +1,6 @@
-function (sanity_deduce_version given_version versions_list_name component_name outversion outindex)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
-	unset (${outversion} PARENT_SCOPE)
-	unset (${outindex} PARENT_SCOPE)
-
-	if ("${given_version}" STREQUAL "latest")
-		sanity_back(${versions_list_name} version)
-	elseif ("${given_version}" STREQUAL "any")
-		if (${${component_cache_version}})
-			set (version "${${component_cache_version}}")
-		else ()
-			sanity_back(${versions_list_name} version)
-		endif ()
-	else ()
-		set (version "${given_version}")
-	endif ()
-
-	list (FIND ${versions_list_name} ${version} index)
-	if (${index} LESS 0)
-		sanity_join(possible_versions " " ${${versions_list_name}})
-		message (FATAL_ERROR "component ${component_name} requested non-existant version ${given_version}. Possible versions are ${possible_versions}")
-	endif ()
-
-	if (${${component_cache_version}})
-		if ("${version}" VERSION_LESS "${${component_cache_version}}")
-			message (FATAL_ERROR "component ${component_name} requires version ${given_version} but version ${${component_cache_version}} is cached")
-		return ()
-		endif()
-	else ()
-		set(${component_cache_version} "${version}" CACHE STRING "version of component ${component_name}")
-	endif ()
-
-
-	set (${outversion} "${version}" PARENT_SCOPE)
-	set (${outindex} "${index}" PARENT_SCOPE)
-
-endfunction ()
 
 function (sanity_require_mysql mysql_version)
 
@@ -55,44 +21,24 @@ function (sanity_require_mysql mysql_version)
 	set (flag_base ${sanity.source.cache.flags}/)
 	set (source_url "https://dev.mysql.com/get/Downloads/Connector-C/${package_name}.tar.gz")
 	set (source_gz "${sanity.source.cache.archive}/${package_name}.tar.gz")
+	set (build_dir ${sanity.target.build}/${package_name})
 	list (GET hashes ${version_index} source_hash)
 
-	if (NOT EXISTS ${source_gz})
-		file(DOWNLOAD ${source_url} 
-			${source_gz} 
-			SHOW_PROGRESS
-	#     	EXPECTED_HASH MD5=${source_hash}
-			STATUS status
-	     )
-	     list (GET status 0 status_code)
-	     list (GET status 1 status_string)
-	     if (NOTE status_code EQUAL 0)
-	     	file (REMOVE ${source_gz})
-			message(FATAL_ERROR 
-"error: downloading '${remote}' failed
-status_code: ${status_code}
-status_string: ${status_string}
-log: ${log}
-")
+	if (NOT EXISTS ${source_url})
+		sanity_download(URL ${source_url} PATH ${source_gz}
+						HASH_METHOD MD5
+						HASH_EXPECTED ${source_hash}
+						ERROR_RESULT result)
+		if (result)
+			message (FATAL_ERROR "${result}")
 		endif ()
-		file (MD5 ${source_gz} hashcode)
-		if (NOT hashcode STREQUAL source_hash)
-	     	file (REMOVE ${source_gz})
-			message(FATAL_ERROR 
-"MD5 hash mismatch
-url: ${source_url}
-file: ${source_gz}
-expected: ${source_hash}
-actual: ${hashcode}
-")
-		endif ()
-     endif ()
+	endif ()
 
 	set (source_tree "${sanity.source.cache.source}/${package_name}")
 
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
 	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}"
-		OR NOT EXISTS ${src_tree})
+		OR "${source_gz}" IS_NEWER_THAN ${source_tree})
      	execute_process(
 			COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
 			WORKING_DIRECTORY ${sanity.source.cache.source}
@@ -104,7 +50,6 @@ actual: ${hashcode}
 	    sanity_touch_flag(untar_flag)
 	 endif()
 
-	set (build_dir ${sanity.target.build}/${package_name})
 	sanity_make_flag(configure_flag "source.cache" "${package_name}" "configure")
 	if (${untar_flag} IS_NEWER_THAN ${configure_flag} OR NOT EXISTS ${build_dir})
 		file(MAKE_DIRECTORY ${build_dir})

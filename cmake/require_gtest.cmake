@@ -1,3 +1,5 @@
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
+
 function (sanity_require_gtest version)
 	set (versions 1.7.0)
 	set (hashes 4ff6353b2560df0afecfbda3b2763847)
@@ -54,24 +56,27 @@ function (sanity_require_gtest version)
 	set (source_url "https://codeload.github.com/google/googletest/tar.gz/${version_string}")
 	set (source_gz "${sanity.source.cache.archive}/${package_name}.tar.gz")
 	set (source_tree "${sanity.source.cache.source}/${package_name}")
+	set (build_dir ${sanity.target.build}/${package_name})
 
-	message (STATUS "downloading : ${source_url}")
-	message (STATUS "destination : ${source_gz}")
-	file(DOWNLOAD ${source_url} 
-		${source_gz} 
-		SHOW_PROGRESS
-		EXPECTED_HASH MD5=${source_hash})
+	if (NOT EXISTS ${source_url})
+		sanity_download(URL ${source_url} PATH ${source_gz}
+			HASH_METHOD MD5
+			HASH_EXPECTED ${source_hash}
+			ERROR_RESULT result)
+		if (result)
+			message (FATAL_ERROR "${result}")
+		endif ()
+	endif ()
+
+#	file(DOWNLOAD ${source_url} 
+#		${source_gz} 
+#		SHOW_PROGRESS
+#		EXPECTED_HASH MD5=${source_hash})
 	
 # maybe untar
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
-	set (need_untar FALSE)
-	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}")
-		set (need_untar TRUE)
-	endif ()
-	if ("${source_gz}" IS_NEWER_THAN "${build_dir}")
-		set (need_untar TRUE)
-	endif ()
-	if (need_untar)
+	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}" OR "${source_gz}" IS_NEWER_THAN "${build_dir}")
+		message (STATUS "sanity_require_gtest - untar ${source_gz}")
 		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
     					WORKING_DIRECTORY ${sanity.source.cache.source}
     					RESULT_VARIABLE res)
@@ -85,7 +90,6 @@ function (sanity_require_gtest version)
 # maybe configure the build
 #
 	find_package(Threads)
-	set (build_dir ${sanity.target.build}/${package_name})
 	sanity_make_flag(run_cmake_flag "target" "${package_name}" "cmake")
 	if ("${untar_flag}" IS_NEWER_THAN "${run_cmake_flag}")
 		file(MAKE_DIRECTORY ${build_dir})
@@ -143,7 +147,7 @@ function (sanity_require_gtest version)
 		add_library(gtest_main INTERFACE IMPORTED GLOBAL)
 		target_link_libraries(gtest_main INTERFACE ${GTest_MAIN_LIBRARIES} gtest)
 	endif ()
-	
+
 	set (sanity.require_gtest.complete TRUE)
 	sanity_propagate_vars(CMAKE_THREAD_LIBS_INIT 
 							CMAKE_USE_SPROC_INIT
