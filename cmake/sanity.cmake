@@ -9,7 +9,8 @@ if (sanity.version)
 	endif ()
 	return ()
 else ()
-	set (sanity.version "1" PARENT_SCOPE)
+	set (sanity.version "1")
+	set (sanity.root ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "Where the sanity scripts are located")
 endif ()
 
 # set up location variables for all future sanity builds
@@ -122,6 +123,17 @@ function (sanity_dump)
 	endforeach ()
 endfunction ()
 
+# return the last item in a LIST
+function (sanity_back container_name outname)
+	list (LENGTH ${container_name} len)
+	if (len LESS 1)
+		message (FATAL_ERROR "sanity_back (${container_name}) : list length is ${len}")
+	endif ()
+	math (EXPR index "${len} - 1")
+	list (GET ${container_name} ${index} result)
+	set (${outname} ${result} PARENT_SCOPE)
+endfunction ()
+
 function (sanity_list_to_string outvar delim)
 	set (result)
 	set (sep "")
@@ -168,7 +180,11 @@ function (sanity_require)
 		set (version ${SANITY_REQUIRE_VERSION})
 	endif ()
 
-	set (sanity.valid.libs boost mysql mysqlcppcon)
+	set (sanity.valid.libs 
+		boost
+		gtest 
+		mysql 
+		mysqlcppcon)
 	list (FIND sanity.valid.libs ${libname} 
 		  name_index)
     if (name_index LESS 0)
@@ -188,6 +204,10 @@ function (sanity_require)
     	sanity_require_boost (${version})
     endif ()
 
+    if (libname STREQUAL "gtest")
+    	sanity_require_gtest(${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -196,3 +216,4 @@ endfunction()
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")

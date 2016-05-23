@@ -77,7 +77,7 @@ function (sanity_require_mysqlcppcon version)
 	
 # maybe untar
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
-	if ("${source_url}" IS_NEWER_THAN "${untar_flag}")
+	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}")
 		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
     					WORKING_DIRECTORY ${sanity.source.cache.source}
     					RESULT_VARIABLE res)
