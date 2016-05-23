@@ -12,7 +12,7 @@ TEST(test_simple, first_test)
 
     auto m  = mysql_ptr { nullptr, closer };
 
-	EXPECT_NO_THROW( m = mysql_ptr(mysql_init(nullptr), closer) );
+	EXPECT_NO_THROW( m.reset(mysql_init(nullptr)) );
 	EXPECT_TRUE(m.get());
 	EXPECT_NO_THROW(m.reset());
 }
