@@ -1,4 +1,5 @@
 # -*- mode: gitignore; -*-
+/test/nbproject/
 *~
 \#*\#
 /.emacs.desktop
