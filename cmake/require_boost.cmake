@@ -3,8 +3,9 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
 function (sanity_require_boost given_version)
 
-	set (versions 1.61.0)
-	set (hashes 6095876341956f65f9d35939ccea1a9f)
+#1.61.0 : 6095876341956f65f9d35939ccea1a9f
+	set (versions 1.60.0)
+	set (hashes 65a840e1a0b13a558ff19eeb2c4f0cbe)
 	sanity_back(versions latest_version)
 
 	sanity_deduce_version(${given_version} versions boost version version_index)
@@ -114,11 +115,18 @@ function (sanity_require_boost given_version)
 	set (Boost_INCLUDE_DIRS ${sanity.target.local}/include)
 	set (Boost_LIBRARY_DIRS ${sanity.target.local}/lib)
 	find_package(Threads)
-	add_library(boost INTERFACE IMPORTED GLOBAL)
-	target_link_libraries(boost INTERFACE 
-		${CMAKE_THREAD_LIBS_INIT} 
-		${CMAKE_DL_LIBS})
-	set_target_properties(boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+        if (NOT TARGET sanity::boost)
+            add_library(sanity::boost INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(sanity::boost INTERFACE 
+                    ${CMAKE_THREAD_LIBS_INIT} 
+                    ${CMAKE_DL_LIBS})
+            set_target_properties(sanity::boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+        endif ()
+
+        if (NOT TARGET boost)
+            add_library(boost INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(boost INTERFACE sanity::boost)
+        endif ()
 
 	file (GLOB Boost_LIBRARIES "${sanity.target.local}/lib/libboost_*.a")
 	set (names_to_propagate )
@@ -126,7 +134,6 @@ function (sanity_require_boost given_version)
 		get_filename_component (libname ${libpath} NAME_WE)
 		string (SUBSTRING "${libname}" 9 -1 component)
 		string (SUBSTRING "${libname}" 3 -1 target_name)
-#		message (STATUS "boost component   : ${component}")
 #		message (STATUS "boost target_name : ${target_name}")
 		string (TOUPPER ${component} upper_component)
 		set (Boost_XXX_FOUND "Boost_${upper_component}_FOUND")
@@ -134,22 +141,44 @@ function (sanity_require_boost given_version)
 		set (${Boost_XXX_FOUND} TRUE)
 		set (${Boost_XXX_LIBRARY} ${libpath})
 		list (APPEND names_to_propagate ${Boost_XXX_FOUND} ${Boost_XXX_LIBRARY})
-		add_library(${target_name} INTERFACE IMPORTED GLOBAL)
-		target_link_libraries(${target_name} INTERFACE ${libpath} boost)
+                set(sanity_target "sanity::boost::${component}")
+#				message (STATUS "boost component   : ${component} : ${target_name}")
+                if (NOT TARGET ${sanity_target})
+                    add_library(${sanity_target} INTERFACE IMPORTED GLOBAL)
+                    target_link_libraries(${sanity_target} 
+                                            INTERFACE ${libpath} sanity::boost)
+#                    message (STATUS "making library ${sanity_target} -> ${libpath}")
+                endif ()
+                if (NOT TARGET ${target_name})
+                    add_library(${target_name} INTERFACE IMPORTED GLOBAL)
+                    target_link_libraries(${target_name} 
+                                            INTERFACE ${sanity_target})
+#                    message (STATUS "making library ${target_name} -> ${sanity_target}")
+                endif()
 	endforeach ()
-	target_link_libraries(boost_thread INTERFACE boost_system)
-	set (Boost_ROOT ${sanity.target.local})
+        target_link_libraries(sanity::boost::thread 
+                                INTERFACE sanity::boost::system)
+        # etc...
+	set (BOOST_ROOT ${sanity.target.local})
+	set (BOOST_INCLUDEDIR ${sanity.target.local}/include)
+	set (BOOST_LIBRARYDIR ${sanity.target.local}/lib)
+        set (Boost_NO_SYSTEM_PATHS ON)
+        set (Boost_USE_STATIC_LIBS ON)
 
 
 	set (sanity.require_boost.complete TRUE)
 
 	sanity_propagate_vars(Boost_FOUND 
-						  Boost_INCLUDE_DIRS
-						  Boost_LIBRARY_DIRS
-						  Boost_LIBRARIES
-						  Boost_ROOT
-						  sanity.require_boost.complete
-						  ${names_to_propagate})
+                                Boost_INCLUDE_DIRS
+                                Boost_LIBRARY_DIRS
+                                Boost_LIBRARIES
+                                BOOST_ROOT
+                                BOOST_INCLUDEDIR
+                                BOOST_LIBRARYDIR
+                                Boost_NO_SYSTEM_PATHS
+                                Boost_USE_STATIC_LIBS
+                                sanity.require_boost.complete
+                                ${names_to_propagate})
 
 
 endfunction ()

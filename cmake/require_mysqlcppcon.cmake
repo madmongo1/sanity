@@ -1,37 +1,20 @@
-function (sanity_require_mysqlcppcon version)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
+
+function (sanity_require_mysqlcppcon given_version)
 
 # NOTE: 1.1.7 does not currently compile against the latest c connector
-    set (latest_version 1.1.6)
 
 	set (versions 1.1.6)
 	set (hashes 9e49dcfc1408b18b3d3ca02781ff7efb)
 	set (mysql_versions 6.1.6)
 	set (boost_versions 1.54.0)
+	sanity_back(versions latest_version)
 
-#
-# recursion check
-#
-	if (version STREQUAL "latest")
-		sanity_require_mysqlcppcon (${latest_version})
-		sanity_propagate_vars ()
-		return ()
+	sanity_deduce_version(${given_version} versions mysqlcppcon version version_index)
+	if (NOT version)
+		message (FATAL_ERROR "unable to deduce version")
 	endif ()
-
-#
-# preconditions
-#
-	if (version VERSION_LESS latest_version)
-		message (FATAL_ERROR "sanity_require_mysql requesting version ${version} but latest available is ${latest_version}")
-	endif ()
-
-	if (NOT sanity.mysqlcppcon.version)
-		set (version "${latest_version}")
-		set(sanity.mysqlcppcon.version ${version} CACHE STRING "version of mysqlcppcon selected")
-	endif ()
-
-	if (sanity.mysqlcppcon.version VERSION_LESS version)
-		message (FATAL_ERROR "mysqlcppcon version ${version} specified but lower version ${sanity.mysqlcppcon.version} available")
-	endif()
 #
 # re-entry check
 #
@@ -43,10 +26,6 @@ function (sanity_require_mysqlcppcon version)
 # find index of this version in version list
 # and set up dependent variables
 #
-	list (FIND versions "${sanity.mysqlcppcon.version}" version_index)
-	if (version_index LESS 0)
-		message (FATAL_ERROR "unknown version of mysqlcppcon: ${sanity.mysqlcppcon.version}")
-	endif ()
 
 	list (GET hashes ${version_index} source_hash)
 	list (GET mysql_versions ${version_index} mysql_version)
@@ -163,21 +142,36 @@ function (sanity_require_mysqlcppcon version)
 	
 
 	find_package(Threads)
-	add_library(mysqlcppcon INTERFACE IMPORTED GLOBAL)
-	target_link_libraries(mysqlcppcon INTERFACE 
-		${MySQLCppCon_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
-		${CMAKE_DL_LIBS} mysql boost)
+        if (NOT TARGET sanity::mysqlcppconn)
+            add_library(sanity::mysqlcppconn INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(sanity::mysqlcppconn INTERFACE 
+                    ${MySQLCppCon_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
+                    ${CMAKE_DL_LIBS} mysql sanity::boost)
+        endif ()
+        if (NOT TARGET mysqlcppcon)
+            add_library(mysqlcppcon INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(mysqlcppcon INTERFACE sanity::mysqlcppconn)
+        endif ()
+        if (NOT TARGET mysqlcppconn)
+            add_library(mysqlcppconn INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(mysqlcppconn INTERFACE sanity::mysqlcppconn)
+        endif ()
+        if (NOT TARGET sanity::mysqlcppcon)
+            add_library(sanity::mysqlcppcon INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(sanity::mysqlcppcon INTERFACE sanity::mysqlcppconn)
+        endif ()
+
 	set (sanity.require_mysqlcppcon.complete TRUE)
 	sanity_propagate_vars(CMAKE_THREAD_LIBS_INIT 
-							CMAKE_USE_SPROC_INIT
-							CMAKE_USE_WIN32_THREADS_INIT
-							CMAKE_USE_PTHREADS_INIT
-							CMAKE_HP_PTHREADS_INIT
-							CMAKE_DL_LIBS
-							MySQLCppCon_Found
-							MySQLCppCon_INCLUDE_DIRS 
-							MySQLCppCon_LIBRARY_DIRS 
-							MySQLCppCon_LIBRARIES
-							sanity.require_mysqlcppcon.complete)
+                                CMAKE_USE_SPROC_INIT
+                                CMAKE_USE_WIN32_THREADS_INIT
+                                CMAKE_USE_PTHREADS_INIT
+                                CMAKE_HP_PTHREADS_INIT
+                                CMAKE_DL_LIBS
+                                MySQLCppCon_Found
+                                MySQLCppCon_INCLUDE_DIRS 
+                                MySQLCppCon_LIBRARY_DIRS 
+                                MySQLCppCon_LIBRARIES
+                                sanity.require_mysqlcppcon.complete)
 
 endfunction ()
