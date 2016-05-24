@@ -41,7 +41,7 @@ function (sanity_require_openssl given_version)
 	endif ()
 
 
-	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
+	sanity_make_flag(untar_flag "target" "${package_name}" "untar")
 	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}"
 		OR "${source_gz}" IS_NEWER_THAN ${source_tree})
      	execute_process(
@@ -56,11 +56,13 @@ function (sanity_require_openssl given_version)
 	endif()
 
 
-	sanity_make_flag(configure_flag "source.cache" "${package_name}" "configure")
+	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
 	if (${untar_flag} IS_NEWER_THAN ${configure_flag})
 		set (configure_command )
 		if (APPLE)
+#message(FATAL_ERROR "Apple path")
 			set (configure_command "${source_tree}/Configure" "darwin64-x86_64-cc")
+
     	elseif (UNIX)
 			set (configure_command "${source_tree}/config")
 		else ()
@@ -84,9 +86,9 @@ error code : ${res}"
 
 	sanity_make_flag(make_depend_flag "target" "${package_name}" "make_depend")
 	if (${configure_flag} IS_NEWER_THAN ${make_depend_flag})
-		execute_process(COMMAND make -j4 depend 
-						WORKING_DIRECTORY ${build_dir}
-						RESULT_VARIABLE res)
+		execute_process(COMMAND make depend 
+					     WORKING_DIRECTORY ${build_dir}
+					     RESULT_VARIABLE res)
 		if (res)
 			message (FATAL_ERROR "failed to make ${package_name}")
 		endif ()
