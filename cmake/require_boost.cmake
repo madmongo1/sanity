@@ -115,18 +115,14 @@ function (sanity_require_boost given_version)
 	set (Boost_INCLUDE_DIRS ${sanity.target.local}/include)
 	set (Boost_LIBRARY_DIRS ${sanity.target.local}/lib)
 	find_package(Threads)
-        if (NOT TARGET sanity::boost)
-            add_library(sanity::boost INTERFACE IMPORTED GLOBAL)
-            target_link_libraries(sanity::boost INTERFACE 
-                    ${CMAKE_THREAD_LIBS_INIT} 
-                    ${CMAKE_DL_LIBS})
-            set_target_properties(sanity::boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-        endif ()
-
         if (NOT TARGET boost)
             add_library(boost INTERFACE IMPORTED GLOBAL)
-            target_link_libraries(boost INTERFACE sanity::boost)
+            target_link_libraries(boost INTERFACE 
+                    ${CMAKE_THREAD_LIBS_INIT} 
+                    ${CMAKE_DL_LIBS})
+            set_target_properties(boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
         endif ()
+
 
 	file (GLOB Boost_LIBRARIES "${sanity.target.local}/lib/libboost_*.a")
 	set (names_to_propagate )
@@ -141,23 +137,31 @@ function (sanity_require_boost given_version)
 		set (${Boost_XXX_FOUND} TRUE)
 		set (${Boost_XXX_LIBRARY} ${libpath})
 		list (APPEND names_to_propagate ${Boost_XXX_FOUND} ${Boost_XXX_LIBRARY})
-                set(sanity_target "sanity::boost::${component}")
-#				message (STATUS "boost component   : ${component} : ${target_name}")
+                set(sanity_target "boost::${component}")
+				message (STATUS "boost component   : ${component} : ${target_name}")
                 if (NOT TARGET ${sanity_target})
                     add_library(${sanity_target} INTERFACE IMPORTED GLOBAL)
                     target_link_libraries(${sanity_target} 
-                                            INTERFACE ${libpath} sanity::boost)
-#                    message (STATUS "making library ${sanity_target} -> ${libpath}")
+                                            INTERFACE ${libpath} boost)
+                    message (STATUS "making library ${sanity_target} -> ${libpath}")
                 endif ()
                 if (NOT TARGET ${target_name})
                     add_library(${target_name} INTERFACE IMPORTED GLOBAL)
                     target_link_libraries(${target_name} 
-                                            INTERFACE ${sanity_target})
-#                    message (STATUS "making library ${target_name} -> ${sanity_target}")
+                                            INTERFACE ${libpath} boost)
+                    message (STATUS "making library ${target_name} -> ${libpath}")
                 endif()
+				if (NOT TARGET "sanity::${sanity_target}")
+					add_library ("sanity::${sanity_target}" IMPORTED INTERFACE GLOBAL)
+					target_link_libraries("sanity::${sanity_target}" INTERFACE ${sanity_target})
+				endif()
 	endforeach ()
-        target_link_libraries(sanity::boost::thread 
-                                INTERFACE sanity::boost::system)
+	if (NOT TARGET sanity::boost)
+		add_library (sanity::boost IMPORTED INTERFACE GLOBAL)
+		target_link_libraries (sanity::boost INTERFACE boost)
+	endif ()
+        target_link_libraries(boost::thread 
+                                INTERFACE boost::system)
         # etc...
 	set (BOOST_ROOT ${sanity.target.local})
 	set (BOOST_INCLUDEDIR ${sanity.target.local}/include)
