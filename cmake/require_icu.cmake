@@ -35,7 +35,7 @@ function (sanity_require_icu given_version)
 	list (GET hashes ${hash_type_index} hash_method)
 	list (GET hashes ${hash_value_index} source_hash)
 
-	if (NOT EXISTS ${source_url})
+	if (NOT EXISTS ${source_gz})
 		sanity_download(URL "${source_url}" PATH "${source_gz}"
 						HASH_METHOD "${hash_method}"
 						HASH_EXPECTED "${source_hash}"
@@ -47,16 +47,8 @@ function (sanity_require_icu given_version)
 
 	sanity_make_flag(untar_flag "target" "${package_name}" "untar")
 	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
-	set (need_untar FALSE)
-	if (${source_gz} IS_NEWER_THAN ${untar_flag})
-		message (FATAL_ERROR "${source_gz} IS_NEWER_THAN ${untar_flag}")
-		set (need_untar TRUE)
-	endif ()
-	if (${source_gz} IS_NEWER_THAN ${configure_flag})
-		message (FATAL_ERROR "${source_gz} IS_NEWER_THAN ${configure_flag}")
-		set (need_untar TRUE)
-	endif ()
-	if (need_untar)
+
+	if (NOT EXISTS ${source_tree})
     	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
 						WORKING_DIRECTORY ${untar_root}
 						RESULT_VARIABLE res)
@@ -75,6 +67,7 @@ function (sanity_require_icu given_version)
 		OR ${untar_flag} IS_NEWER_THAN ${build_dir}
 #		OR ${build_dir} IS_NEWER_THAN ${CMAKE_CURRENT_LIST_FILE}
 		)
+		file (MAKE_DIRECTORY ${build_dir})
 		set (configure_command "${source_tree}/source/runConfigureICU")
 		if (APPLE)
 			list (APPEND configure_command "MacOSX")

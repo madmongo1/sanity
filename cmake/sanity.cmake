@@ -13,6 +13,11 @@ else ()
 	set (sanity.root ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "Where the sanity scripts are located")
 endif ()
 
+if (APPLE)
+	include ("${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_darwin_toolset.cmake")
+	sanity_deduce_darwin_toolset()
+endif ()
+
 #
 # concurrency
 #
@@ -82,6 +87,11 @@ if (NOT sanity.host.local)
 	set (sanity.host.local "${CMAKE_CURRENT_BINARY_DIR}/host_local" CACHE PATH "the install path for files required by the host build environemnt")
 endif ()
 file(MAKE_DIRECTORY ${sanity.host.local})
+
+if (NOT sanity.host.flags)
+	set (sanity.host.flags "${CMAKE_CURRENT_BINARY_DIR}/host_flags" CACHE PATH "flag files for the host build environment")
+endif ()
+file(MAKE_DIRECTORY ${sanity.host.flags})
 
 if (NOT sanity.host.build)
 	set (sanity.host.build "${CMAKE_CURRENT_BINARY_DIR}/host_build" CACHE PATH "the build path for files required by the host build environment")
@@ -208,6 +218,7 @@ function (sanity_require)
 		gtest 
 		icu
 		openssl
+		protobuf
 		mysql 
 		mysqlcppcon)
 	list (FIND sanity.valid.libs ${libname} 
@@ -215,18 +226,6 @@ function (sanity_require)
     if (name_index LESS 0)
         sanity_list_to_string(rep ", " ${sanity.valid.libs})
     	message (FATAL_ERROR "unknown required library: ${libname}. Valid libraries are: ${rep}")
-    endif ()
-
-    if (libname STREQUAL "mysql")
-    	sanity_require_mysql (${version})
-    endif ()
-
-    if (libname STREQUAL "mysqlcppcon")
-    	sanity_require_mysqlcppcon (${version})
-    endif ()
-
-    if (libname STREQUAL "openssl")
-    	sanity_require_openssl (${version})
     endif ()
 
     if (libname STREQUAL "boost")
@@ -241,6 +240,22 @@ function (sanity_require)
     	sanity_require_icu(${version})
 	endif ()
 
+    if (libname STREQUAL "mysql")
+    	sanity_require_mysql (${version})
+    endif ()
+
+    if (libname STREQUAL "mysqlcppcon")
+    	sanity_require_mysqlcppcon (${version})
+    endif ()
+
+    if (libname STREQUAL "openssl")
+    	sanity_require_openssl (${version})
+    endif ()
+
+    if (libname STREQUAL "protobuf")
+    	sanity_require_protobuf (${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -252,6 +267,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_protobuf.cmake")
 
 sanity_dump ()
 
