@@ -4,3 +4,13 @@ To workaround this, there is a function called sanity_download(...) which will t
 file(DOWNLOAD) function first, and then fall back to curl. If you see the same problem, make sure
 you have installed curl (brew install curl)
 
+2. FEDORA 23 - you need to install makedepend
+
+4. MacOSX needs command line tools:
+	xcode-select --install
+
+3. MacOSX as a host : you will need the following tools to configure protobuf:
+	homebrew
+
+	brew install curl libtool autoconf automake 
+

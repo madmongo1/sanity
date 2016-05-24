@@ -14,6 +14,7 @@ else ()
 endif ()
 
 if (APPLE)
+	include ("${CMAKE_CURRENT_LIST_DIR}/apple_install_command_line_tools.cmake")
 	include ("${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_darwin_toolset.cmake")
 	sanity_deduce_darwin_toolset()
 endif ()
