@@ -4,6 +4,7 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 function (sanity_require_gtest version_arg)
     set (versions 1.7.0)
     set (hashes 4ff6353b2560df0afecfbda3b2763847)
+    set (manual_installs ON)
     sanity_back(versions latest_version)
 
     sanity_deduce_version(${version_arg} versions gtest version version_index)
@@ -23,6 +24,7 @@ function (sanity_require_gtest version_arg)
 # and set up dependent variables
 #
     list (GET hashes ${version_index} source_hash)
+    list (GET manual_installs ${version_index} manual_install)
 
 # download source
 
@@ -93,30 +95,62 @@ function (sanity_require_gtest version_arg)
                                             WORKING_DIRECTORY ${build_dir}
                                             RESULT_VARIABLE res)
             if (res)
-                    message (FATAL_ERROR "failed to build mysqlcppconn - ${res}") 
+                    message (FATAL_ERROR "failed to build gtest - ${res}") 
             endif ()
             sanity_touch_flag(run_make_flag)
     endif ()
 
-    set (GTest_Found TRUE)
-    set (GTest_INCLUDE_DIRS "${source_tree}/include")
-    set (GTest_LIBRARIES "${build_dir}/libgtest.a")
-    set (GTest_MAIN_LIBRARIES "${build_dir}/libgtest_main.a" "${GTest_LIBARIES}")
-    set (GTest_LIBRARY_DIRS "${build_dir}")
+    sanity_make_flag(install_flag "target" "${package_name}" "install")
+    if ("${run_make_flag}" IS_NEWER_THAN "${install_flag}")
+        if (manual_install)
+            file(COPY "${build_dir}/libgtest.a" DESTINATION "${sanity.target.local}/lib")
+            file(COPY "${build_dir}/libgtest_main.a" DESTINATION "${sanity.target.local}/lib")
+            file(COPY "${source_tree}/include/gtest" DESTINATION "${sanity.target.local}/include")
+        else ()
+            execute_process(COMMAND make install 
+                                    WORKING_DIRECTORY ${build_dir}
+                                    RESULT_VARIABLE res)
+            if (res)
+                    message (FATAL_ERROR "failed to install gtest - ${res}") 
+            endif ()
+        endif ()
+        sanity_touch_flag(install_flag)
+    endif ()
+
+#
+# simulate outputs of FindGTest
+#
+    sanity_propagate_value (NAME GTEST_FOUND VALUE TRUE)
+    sanity_propagate_value (NAME GTEST_INCLUDE_DIRS VALUE "${sanity.target.local}/include")
+    sanity_propagate_value (NAME GTEST_LIBRARIES VALUE "${sanity.target.local}/lib/libgtest.a")
+    sanity_propagate_value (NAME GTEST_MAIN_LIBRARIES VALUE "${sanity.target.local}/lib/libgtest_main.a")
+    sanity_propagate_value (NAME GTEST_BOTH_LIBRARIES VALUE ${GTEST_MAIN_LIBRARIES} ${GTEST_LIBRARIES})
+    sanity_propagate_value (NAME GTEST_LIBRARY_DIRS VALUE "${sanity.target.local}/lib")
+
+
+#
+# set unputs for future invocations of FindGTest
+#
+    sanity_propagate_value (NAME GTEST_ROOT VALUE "${sanity.target.local}")
+    sanity_propagate_value (NAME GTEST_LIBRARY VALUE "${sanity.target.local}/lib/libgtest.a") 
+    sanity_propagate_value (NAME GTEST_INCLUDE_DIR VALUE "${sanity.target.local}/include")
+    sanity_propagate_value (NAME GTEST_MAIN_LIBRARY VALUE "${sanity.target.local}/lib/libgtest_main.a")
+
 
     find_package(Threads)
+
 
     if (NOT TARGET sanity::gtest)
             add_library(sanity::gtest INTERFACE IMPORTED GLOBAL)
             target_link_libraries(sanity::gtest INTERFACE 
-                    ${GTest_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
+                    ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
                     ${CMAKE_DL_LIBS})
-            set_target_properties(sanity::gtest PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GTest_INCLUDE_DIRS})
+            set_target_properties(sanity::gtest PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIRS})
     endif ()
 
     if (NOT TARGET sanity::gtest::main)
             add_library(sanity::gtest::main INTERFACE IMPORTED GLOBAL)
-            target_link_libraries(sanity::gtest::main INTERFACE ${GTest_MAIN_LIBRARIES} sanity::gtest)
+            target_link_libraries(sanity::gtest::main INTERFACE ${GTEST_MAIN_LIBRARIES} sanity::gtest)
     endif ()
 
     if (NOT TARGET gtest)
@@ -136,11 +170,6 @@ function (sanity_require_gtest version_arg)
                             CMAKE_USE_PTHREADS_INIT
                             CMAKE_HP_PTHREADS_INIT
                             CMAKE_DL_LIBS
-                            GTest_Found
-                            GTest_INCLUDE_DIRS 
-                            GTest_LIBRARIES
-                            GTest_MAIN_LIBRARIES
-                            GTest_LIBRARY_DIRS 
                             sanity.require_gtest.complete)
 
 endfunction ()
