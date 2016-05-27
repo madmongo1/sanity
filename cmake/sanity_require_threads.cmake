@@ -1,0 +1,21 @@
+if (sanity.function.sanity_require_threads.included)
+	return ()
+endif ()
+set (sanity.function.sanity_require_threads.included TRUE)
+
+function (sanity_require_threads)
+    find_package (Threads)
+    sanity_propagate_value_if(NAME CMAKE_THREAD_LIBS_INIT VALUE ${CMAKE_THREAD_LIBS_INIT})
+    sanity_propagate_value_if(NAME CMAKE_USE_SPROC_INIT VALUE ${CMAKE_USE_SPROC_INIT})
+    sanity_propagate_value_if(NAME CMAKE_USE_WIN32_THREADS_INIT VALUE ${CMAKE_USE_WIN32_THREADS_INIT})
+    sanity_propagate_value_if(NAME CMAKE_USE_PTHREADS_INIT VALUE ${CMAKE_USE_PTHREADS_INIT})
+    sanity_propagate_value_if(NAME CMAKE_HP_PTHREADS_INIT VALUE ${CMAKE_HP_PTHREADS_INIT})
+
+    if (NOT TARGET sanity::threads)
+        add_library(sanity::threads INTERFACE IMPORTED GLOBAL)
+        if (CMAKE_THREAD_LIBS_INIT)
+            target_link_libraries(sanity::threads INTERFACE 
+                    ${CMAKE_THREAD_LIBS_INIT})
+        endif ()
+    endif ()
+endfunction ()

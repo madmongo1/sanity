@@ -1,5 +1,6 @@
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
+include (${CMAKE_CURRENT_LIST_DIR}/sanity_require_threads.cmake)
 
 function (sanity_require_gtest version_arg)
     set (versions 1.7.0)
@@ -120,9 +121,15 @@ function (sanity_require_gtest version_arg)
 #
 # simulate outputs of FindGTest
 #
+    sanity_require_threads()
+
     sanity_propagate_value (NAME GTEST_FOUND VALUE TRUE)
     sanity_propagate_value (NAME GTEST_INCLUDE_DIRS VALUE "${sanity.target.local}/include")
-    sanity_propagate_value (NAME GTEST_LIBRARIES VALUE "${sanity.target.local}/lib/libgtest.a")
+    set (GTEST_LIBRARIES "${sanity.target.local}/lib/libgtest.a")
+    if (CMAKE_THREAD_LIBS_INIT)
+        list (APPEND GTEST_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+    endif ()
+    sanity_propagate_value (NAME GTEST_LIBRARIES VALUE ${GTEST_LIBRARIES})
     sanity_propagate_value (NAME GTEST_MAIN_LIBRARIES VALUE "${sanity.target.local}/lib/libgtest_main.a")
     sanity_propagate_value (NAME GTEST_BOTH_LIBRARIES VALUE ${GTEST_MAIN_LIBRARIES} ${GTEST_LIBRARIES})
     sanity_propagate_value (NAME GTEST_LIBRARY_DIRS VALUE "${sanity.target.local}/lib")
@@ -136,21 +143,18 @@ function (sanity_require_gtest version_arg)
     sanity_propagate_value (NAME GTEST_INCLUDE_DIR VALUE "${sanity.target.local}/include")
     sanity_propagate_value (NAME GTEST_MAIN_LIBRARY VALUE "${sanity.target.local}/lib/libgtest_main.a")
 
-
-    find_package(Threads)
-
-
     if (NOT TARGET sanity::gtest)
             add_library(sanity::gtest INTERFACE IMPORTED GLOBAL)
             target_link_libraries(sanity::gtest INTERFACE 
-                    ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
+                    ${GTEST_LIBRARIES} sanity::threads 
                     ${CMAKE_DL_LIBS})
             set_target_properties(sanity::gtest PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIRS})
     endif ()
 
     if (NOT TARGET sanity::gtest::main)
             add_library(sanity::gtest::main INTERFACE IMPORTED GLOBAL)
-            target_link_libraries(sanity::gtest::main INTERFACE ${GTEST_MAIN_LIBRARIES} sanity::gtest)
+            target_link_libraries(sanity::gtest::main 
+                INTERFACE ${GTEST_MAIN_LIBRARIES} ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     endif ()
 
     if (NOT TARGET gtest)
