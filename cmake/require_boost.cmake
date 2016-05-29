@@ -1,17 +1,101 @@
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
-function (sanity_require_boost given_version)
+# \brief turn a version string into a boost package name
+# \brief @param outvar is the name of the variable to populate
+# \brief @param VERSION <version> is the version of boost
+# \brief @returns outvar
+function (boost_make_package_name outvar)
+    set(options)
+    set(oneValueArgs VERSION)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARG "${options}" 
+                              "${oneValueArgs}" "${multiValueArgs}"
+                              ${ARGN})
 
-#1.61.0 : 6095876341956f65f9d35939ccea1a9f
+    if (NOT outvar OR NOT ARG_VERSION)
+        message (FATAL_ERROR "boost_make_package_name(${ARGN})")
+    endif ()
+
+    string(REPLACE "." "_" boost_version_name "${version}")
+    set (package_name "boost_${boost_version_name}")
+    set (${outvar} "${package_name}" PARENT_SCOPE)
+endfunction ()
+
+# \brief download a version of the archive if necessary
+# \brief @param outvar is the name of the variable to populate with the path to the archive
+# \brief @param VERSION <version> is the version of boost
+# \brief @returns outvar
+function (boost_acquire_archive outvar)
+    set(options)
+    set(oneValueArgs VERSION)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARG "${options}" 
+                              "${oneValueArgs}" "${multiValueArgs}"
+                              ${ARGN})
+
+    if (NOT outvar OR NOT ARG_VERSION)
+        message (FATAL_ERROR "boost_acquire_archive(${ARGN})")
+    endif ()
+
+    set (version_details_1.60.0 "https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download"
+                                "${sanity.source.cache.archive}/boost_1_60_0.tar.bz2"
+                                MD5
+                                65a840e1a0b13a558ff19eeb2c4f0cbe)
+    set (version_details_1.60.0 "https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2/download"
+                                "${sanity.source.cache.archive}/boost_1_61_0.tar.bz2"
+                                MD5
+                                6095876341956f65f9d35939ccea1a9f)
+
+    set(version_details_tuple "version_details_${ARG_VERSION}")
+    list (LENGTH "${version_details_tuple}" check)
+    if (NOT check EQUAL 4)
+        message (STATUS "invalid version: function (boost_acquire_archive ${ARGN})")
+        message (FATAL_ERROR "${version_details_tuple}=${${version_details_tuple}}")
+    endif ()
+
+    list (GET "${version_details_tuple}" 0 url)
+    list (GET "${version_details_tuple}" 1 archive_path)
+    list (GET "${version_details_tuple}" 2 hash_method)
+    list (GET "${version_details_tuple}" 3 expected_hash)
+
+    file ("${hash_method}" "${archive_path}" current_hash)
+    if (NOT current_hash STREQUAL expected_hash)
+        message (STATUS "downloading archive from [${url}] to [${archive_path}]") 
+        sanity_download(URL "${url}"
+                        PATH "${archive_path}"
+                        HASH_METHOD "${hash_method}"
+                        HASH_EXPECTED ${expected_hash}
+                        ERROR_RESULT err)
+        if (err)
+            message (FATAL_ERROR "download error: ${res}")
+        endif ()
+    endif ()
+
+    set (${outvar} "${archive_path}" PARENT_SCOPE)
+
+endfunction ()
+
+function (boost_bootstrap)
+endfunction ()
+
+function (sanity_require_boost)
+	set(options)
+	set(oneValueArgs VERSION)
+	set(multiValueArgs COMPONENTS)
+	cmake_parse_arguments(ARG "${options}" 
+                		  "${oneValueArgs}" "${multiValueArgs}"
+				  ${ARGN})
+
 	set (versions 1.60.0)
-	set (hashes 65a840e1a0b13a558ff19eeb2c4f0cbe)
 	sanity_back(versions latest_version)
-
-	sanity_deduce_version(${given_version} versions boost version version_index)
+	sanity_deduce_version(${ARG_VERSION} versions boost version version_index)
 	if (NOT version)
 		message (FATAL_ERROR "unable to deduce version")
 	endif ()
+
+        boost_make_package_name(package_name VERSION ${version})
+        boost_acquire_archive(source_gz VERSION ${version})
 
 	if (sanity.require_boost.complete)
 		return ()
@@ -23,17 +107,8 @@ function (sanity_require_boost given_version)
 	sanity_require (LIBRARY openssl VERSION any)
 	sanity_require (LIBRARY icu VERSION any)
 
-	string(REPLACE "." "_" boost_version_name "${version}")
-	set (package_name "boost_${boost_version_name}")
-	set (flag_base ${sanity.source.cache.flags}/)
 	set (source_url "https://sourceforge.net/projects/boost/files/boost/${version}/${package_name}.tar.bz2/download")
 	set (source_gz "${sanity.source.cache.archive}/${package_name}.tar.bz2")
-	list (GET hashes ${version_index} source_hash)
-
-	file (DOWNLOAD ${source_url} 
-		 ${source_gz} 
-		 SHOW_PROGRESS
-	     EXPECTED_HASH MD5=${source_hash})
 
 	set (source_tree "${sanity.target.local.source}/${package_name}")
 

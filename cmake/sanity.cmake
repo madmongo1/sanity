@@ -234,7 +234,7 @@ endmacro ()
 function (sanity_require)
 	set(options)
 	set(oneValueArgs LIBRARY VERSION)
-	set(multiValueArgs)
+	set(multiValueArgs COMPONENTS)
 	cmake_parse_arguments(SANITY_REQUIRE "${options}" 
 						  "${oneValueArgs}" "${multiValueArgs}"
 						  ${ARGN})
@@ -252,6 +252,12 @@ function (sanity_require)
 		set (version ${SANITY_REQUIRE_VERSION})
 	endif ()
 
+        # COMPONENTS is nullable
+        set (components)
+        if (SANITY_REQUIRE_COMPONENTS)
+            set(components ${SANITY_REQUIRE_COMPONENTS})
+        endif ()
+
 	set (sanity.valid.libs 
 		boost
 		gtest 
@@ -268,7 +274,7 @@ function (sanity_require)
     endif ()
 
     if (libname STREQUAL "boost")
-    	sanity_require_boost (${version})
+    	sanity_require_boost (VERSION ${version} COMPONENTS ${components})
     endif ()
 
     if (libname STREQUAL "gtest")
