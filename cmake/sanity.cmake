@@ -111,6 +111,9 @@ function (sanity_join outvar separator)
 
 endfunction ()
 
+# @param outvar is the output variable to set
+# @param flag_type is local, host or source.cache
+# @param ...args is the components of the flag's name. normally package and function 
 function (sanity_make_flag outvar flag_type)
 
 	set (result )
@@ -231,8 +234,79 @@ macro (sanity_propagate_vars)
 	endforeach()
 endmacro ()
 
-function (sanity_require)
+# depends on the sanity.current.system variable being set
+function (sanity_current_system_path)
 	set(options)
+	set(oneValueArgs LOCAL FLAGS BUILD SRC)
+	set(multiValueArgs)
+	cmake_parse_arguments(ARG "${options}" 
+						  "${oneValueArgs}" "${multiValueArgs}"
+						  ${ARGN})
+
+        if (NOT sanity.current.system)
+            message (FATAL_ERROR "sanity_current_system_path: sanity.current.system not set")
+        endif ()
+
+        set (bad_arg)
+        foreach (unparsed IN LISTS ARG_UNPARSED_ARGUMENTS)
+            message (STATUS "sanity_current_system_path: unknown argument [${unparsed}]")
+            set (bad_arg ON)
+        endforeach ()
+        if (bad_arg)
+            message (FATAL_ERROR "sanity_current_system_path (${ARGV})")
+        endif ()
+
+        if (ARG_LOCAL)
+            set (path "${sanity.${sanity.current.system}.local}")
+            set (${ARG_LOCAL} "${path}" PARENT_SCOPE)
+            file(MAKE_DIRECTORY ${path})
+        endif ()
+
+        if (ARG_FLAGS)
+            set (path "${sanity.${sanity.current.system}.flags}")
+            set (${ARG_FLAGS} "${path}" PARENT_SCOPE)
+            file(MAKE_DIRECTORY ${path})
+        endif ()
+
+        if (ARG_BUILD)
+            set (path "${sanity.${sanity.current.system}.build}")
+            set (${ARG_BUILD} "${path}" PARENT_SCOPE)
+            file(MAKE_DIRECTORY ${path})
+        endif ()
+
+        if (ARG_SRC)
+            set (path "${sanity.${sanity.current.system}.local}/src")
+            set (${ARG_SRC} "${path}" PARENT_SCOPE)
+            file(MAKE_DIRECTORY ${path})
+        endif ()
+
+endfunction ()
+
+function (sanity_make_current_system_flag outvar)
+	set(options HOST)
+	set(oneValueArgs PACKAGE FUNCTION SDKTARGET)
+	set(multiValueArgs)
+	cmake_parse_arguments(ARG "${options}" 
+						  "${oneValueArgs}" "${multiValueArgs}"
+						  ${ARGN})
+        if (NOT outvar OR NOT ARG_PACKAGE OR NOT ARG_FUNCTION)
+            message (FATAL_ERROR "sanity_make_current_system_flag (${ARGN})")
+        endif ()
+        if (NOT sanity.current.system)
+            message ("sanity.current.system is not set")
+        endif ()
+
+        sanity_current_system_path (FLAGS flags_path)
+        set (value "${flags_path}/${ARG_PACKAGE}-${ARG_FUNCTION}")
+        if (ARG_SDKTARGET)
+            set (value "${value}-${ARG_SDKTARGET}")
+        endif ()
+        set (${outvar} "${value}" PARENT_SCOPE)
+
+endfunction ()
+
+function (sanity_require)
+	set(options HOST)
 	set(oneValueArgs LIBRARY VERSION)
 	set(multiValueArgs COMPONENTS)
 	cmake_parse_arguments(SANITY_REQUIRE "${options}" 
@@ -252,20 +326,40 @@ function (sanity_require)
 		set (version ${SANITY_REQUIRE_VERSION})
 	endif ()
 
+	# check for spurious arguments
+	if (SANITY_REQUIRE_UNPARSED_ARGUMENTS)
+		message (FATAL_ERROR "spurious arguments: ${spurious}")
+	endif ()
+
+        if (SANITY_REQUIRE_HOST)
+            set (sanity.current.system "host")
+        elseif (NOT sanity.current.system)
+            set (sanity.current.system "target")
+        endif ()
+
         # COMPONENTS is nullable
         set (components)
         if (SANITY_REQUIRE_COMPONENTS)
             set(components ${SANITY_REQUIRE_COMPONENTS})
         endif ()
 
-	set (sanity.valid.libs 
-		boost
-		gtest 
-		icu
-		openssl
-		protobuf
-		mysql 
-		mysqlcppcon)
+        if (sanity.current.system STREQUAL "host")
+            set (sanity.valid.libs 
+                    boost
+                    protobuf)
+        elseif (sanity.current.system STREQUAL "target")
+            set (sanity.valid.libs 
+                    boost
+                    gtest 
+                    icu
+                    openssl
+                    protobuf
+                    mysql 
+                    mysqlcppcon)
+        else ()
+            message (FATAL_ERROR "sanity.current.target=${sanity.current.target}")
+        endif ()
+        
 	list (FIND sanity.valid.libs ${libname} 
 		  name_index)
     if (name_index LESS 0)
