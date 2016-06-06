@@ -99,18 +99,18 @@ if (err OR sanity.force.homebrew)
 endif ()
 
 
-execute_process (COMMAND libtool --version
+execute_process (COMMAND glibtool --version
 					ERROR_VARIABLE cerr
 					RESULT_VARIABLE err
 					OUTPUT_VARIABLE cout)
 if (err GREATER 1 OR sanity.force.homebrew)
-	message (STATUS "... installing libtool")
+	message (STATUS "... installing glibtool")
 	execute_process (COMMAND brew install libtool
 				ERROR_VARIABLE cerr
 				RESULT_VARIABLE err
 				OUTPUT_VARIABLE cout)
 	if (err)
-		message (STATUS "can't install libtool")
+		message (STATUS "can't install glibtool")
 		message (FATAL_ERROR "${res}\n${cerr}")
 	endif ()
 endif ()
