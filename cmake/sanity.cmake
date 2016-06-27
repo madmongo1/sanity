@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
+
+project (sanity) 
 set (sanity.constant.this.version 1)
 
 
@@ -23,6 +25,8 @@ endif ()
 # concurrency
 #
 set (sanity.concurrency 4)
+set (sanity.platform "${CMAKE_HOST_SYSTEM_NAME}")
+
 if (CMAKE_HOST_APPLE)
 	execute_process(COMMAND sysctl -n hw.ncpu 
 					RESULT_VARIABLE err 
@@ -141,7 +145,7 @@ function (sanity_dump)
 	message (STATUS "Sanity Settings")
 	set (vars 	sanity.version sanity.source.cache sanity.source.cache.flags sanity.source.cache.archive
 				sanity.source.cache.source sanity.target.local sanity.target.build sanity.host.local sanity.host.build
-				sanity.target.flags sanity.concurrency)
+				sanity.target.flags sanity.concurrency sanity.platform)
 	set (maxlen 0)
 	foreach (name IN LISTS vars)
 		string(LENGTH "${name}" thislen)
