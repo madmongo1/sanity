@@ -354,6 +354,7 @@ function (sanity_require)
         elseif (sanity.current.system STREQUAL "target")
             set (sanity.valid.libs 
                     boost
+                    curl
                     gtest 
                     icu
                     openssl
@@ -399,6 +400,10 @@ function (sanity_require)
     	sanity_require_protobuf (${version})
     endif ()
 
+    if (libname STREQUAL "curl")
+    	sanity_require_curl (${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -411,6 +416,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_protobuf.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_curl.cmake")
 
 sanity_dump ()
 
