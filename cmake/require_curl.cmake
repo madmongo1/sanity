@@ -69,6 +69,8 @@ function (sanity_require_curl given_version)
 		list (APPEND configure_command "--with-ssl=${sanity.target.local}/ssl")
 		list (APPEND configure_command "--enable-shared=no")
 		list (APPEND configure_command "--enable-static=yes")
+		list (APPEND configure_command "--disable-ldap")
+		list (APPEND configure_command "--disable-ldaps")
 		execute_process(COMMAND ${configure_command} 
 				    	WORKING_DIRECTORY ${build_dir}
 				    	RESULT_VARIABLE res)
@@ -110,15 +112,17 @@ error code : ${res}"
 	find_package(Threads)
 	set(component_names CURL_INCLUDE_DIRS CURL_LIBRARIES CURL_FOUND CURL_VERSION_STRING)
 	set(CURL_INCLUDE_DIRS "${sanity.target.local}/include")
-	set(CURL_LIBRARIES "${sanity.target.local}/libcurl.a")
+	set(CURL_LIBRARIES "${sanity.target.local}/lib/libcurl.a")
 	set(CURL_FOUND True)
 	set(CURL_VERSION_STRING "${version}")
 
 	if (NOT TARGET sanity::curl)
 		add_library(sanity::curl INTERFACE IMPORTED GLOBAL)
+        target_link_libraries(sanity::curl 
+                                INTERFACE ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES})
 		set_property(TARGET sanity::curl
 			APPEND 
-			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CURL_INCLUDE_DIRS} ${OPENSSL_LIBRARIES})
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CURL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 	endif ()
 
 	set (${complete_flag} TRUE)
