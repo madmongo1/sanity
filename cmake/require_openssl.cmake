@@ -116,7 +116,7 @@ error code : ${res}"
 	set (OPENSSL_INCLUDE_DIR "${sanity.target.local}/ssl/include")
 	set (OPENSSL_CRYPTO_LIBRARY "${sanity.target.local}/ssl/lib/libcrypto.a")
 	set (OPENSSL_SSL_LIBRARY "${sanity.target.local}/ssl/lib/libssl.a")
-	set (OPENSSL_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY})
+	set (OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
 	set (OPENSSL_VERSION "${version}")
 
 	find_package(Threads)
