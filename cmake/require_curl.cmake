@@ -71,6 +71,7 @@ function (sanity_require_curl given_version)
 		list (APPEND configure_command "--enable-static=yes")
 		list (APPEND configure_command "--disable-ldap")
 		list (APPEND configure_command "--disable-ldaps")
+		list (APPEND configure_command "--without-libidn")
 		execute_process(COMMAND ${configure_command} 
 				    	WORKING_DIRECTORY ${build_dir}
 				    	RESULT_VARIABLE res)
