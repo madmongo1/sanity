@@ -46,10 +46,10 @@ function (sanity_require_curl given_version)
 		endif ()
 	endif ()
 
-	sanity_make_flag(untar_flag "target" "${package_name}" "untar")
+	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
 	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
 
-	if (NOT EXISTS ${source_tree})
+	if (NOT EXISTS ${source_tree} OR NOT EXISTS ${untar_flag})
     	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
 						WORKING_DIRECTORY ${untar_root}
 						RESULT_VARIABLE res)
@@ -61,7 +61,6 @@ function (sanity_require_curl given_version)
 
 	if (${untar_flag} IS_NEWER_THAN ${configure_flag}
 		OR ${untar_flag} IS_NEWER_THAN ${build_dir}
-#		OR ${build_dir} IS_NEWER_THAN ${CMAKE_CURRENT_LIST_FILE}
 		)
 		file (MAKE_DIRECTORY ${build_dir})
 		set (configure_command "${source_tree}/configure")
@@ -95,6 +94,7 @@ error code : ${res}"
 	endif ()
 
 	if (${clean_flag} IS_NEWER_THAN ${make_flag} OR NOT EXISTS ${make_flag})
+
 		execute_process(COMMAND make "-j${sanity.concurrency}"
 						WORKING_DIRECTORY ${build_dir}
 						RESULT_VARIABLE res)
