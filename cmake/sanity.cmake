@@ -357,6 +357,7 @@ function (sanity_require)
                     curl
                     gtest 
                     icu
+                    ldns
                     openssl
                     protobuf
                     mysql 
@@ -374,6 +375,10 @@ function (sanity_require)
 
     if (libname STREQUAL "boost")
     	sanity_require_boost (VERSION ${version} COMPONENTS ${components})
+    endif ()
+
+    if (libname STREQUAL "ldns")
+    	sanity_require_ldns (${version})
     endif ()
 
     if (libname STREQUAL "gtest")
@@ -412,6 +417,7 @@ endfunction()
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_ldns.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
