@@ -353,6 +353,7 @@ function (sanity_require)
                     protobuf)
         elseif (sanity.current.system STREQUAL "target")
             set (sanity.valid.libs 
+            		amqpcpp
                     boost
                     curl
                     gtest 
@@ -371,6 +372,10 @@ function (sanity_require)
     if (name_index LESS 0)
         sanity_list_to_string(rep ", " ${sanity.valid.libs})
     	message (FATAL_ERROR "unknown required library: ${libname}. Valid libraries are: ${rep}")
+    endif ()
+
+    if (libname STREQUAL "amqpcpp")
+    	sanity_require_amqpcpp (VERSION ${version})
     endif ()
 
     if (libname STREQUAL "boost")
@@ -423,6 +428,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_protobuf.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_curl.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_amqpcpp.cmake")
 
 sanity_dump ()
 
