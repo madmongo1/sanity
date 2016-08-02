@@ -2,6 +2,7 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
 
+
 function (sanity_require_ldns given_version)
 
 	set (library ldns)
@@ -35,6 +36,7 @@ function (sanity_require_ldns given_version)
 	list (GET hashes ${hash_value_index} source_hash)
 
 	if (NOT EXISTS ${source_url})
+		MESSAGE (STATUS "${package_name}: Downloading [${source_url}] to [${source_gz}]")
 		sanity_download(URL ${source_url} PATH ${source_gz}
 						HASH_METHOD ${hash_method}
 						HASH_EXPECTED ${source_hash}
@@ -45,9 +47,11 @@ function (sanity_require_ldns given_version)
 	endif ()
 
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
+	sanity_make_flag(patch_flag "source.cache" "${package_name}" "patch")
 	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
 
 	if (NOT EXISTS ${source_tree} OR NOT EXISTS ${untar_flag})
+		MESSAGE (STATUS "${package_name}: Untaring [${source_gz}] into [${untar_root}]")
     	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${source_gz}
 						WORKING_DIRECTORY ${untar_root}
 						RESULT_VARIABLE res)
@@ -57,10 +61,28 @@ function (sanity_require_ldns given_version)
 		sanity_touch_flag(untar_flag)
 	endif()
 
-	if (${untar_flag} IS_NEWER_THAN ${configure_flag}
-		OR ${untar_flag} IS_NEWER_THAN ${build_dir}
-		)
+	if (${untar_flag} IS_NEWER_THAN ${patch_flag})
+		if ("${version}" STREQUAL "1.6.17")
+			set (patch_file "${sanity.root}/patch/ldns-1.6.17.patch")
+
+			MESSAGE (STATUS "${package_name}: patching [${source_tree}] WITH file [${patch_file}]")
+
+			MESSAGE (STATUS "cd ${source_tree}")
+			MESSAGE (STATUS "git apply ${patch_file}")
+			execute_process(COMMAND "git" "apply" "${patch_file}"
+							WORKING_DIRECTORY "${source_tree}"
+							RESULT_VARIABLE res)
+			if (res)
+				MESSAGE(FATAL_ERROR "during patch: ${res}") 
+			endif ()
+		endif ()
+		sanity_touch_flag(patch_flag)
+	endif ()
+
+
+	if (${patch_flag} IS_NEWER_THAN ${configure_flag})
 		file (MAKE_DIRECTORY ${build_dir})
+		MESSAGE (STATUS "${package_name}: configuring")
 		set (configure_command "${source_tree}/configure")
 		list (APPEND configure_command "--prefix=${sanity.target.local}")
 		list (APPEND configure_command "--with-ssl=${sanity.target.local}/ssl")
@@ -79,10 +101,12 @@ error code : ${res}"
 		sanity_touch_flag (configure_flag)
 	endif ()
 
+
 	sanity_make_flag(clean_flag "target" "${package_name}" "clean")
 	sanity_make_flag(make_flag "target" "${package_name}" "make")
 
 	if (${configure_flag} IS_NEWER_THAN ${clean_flag})
+		MESSAGE (STATUS "${package_name}: cleaning")
 		file (MAKE_DIRECTORY "${build_dir}")
 		execute_process(COMMAND make "-j${sanity.concurrency}" clean
 						WORKING_DIRECTORY ${build_dir})
@@ -91,12 +115,14 @@ error code : ${res}"
 
 	if (${clean_flag} IS_NEWER_THAN ${make_flag} OR NOT EXISTS ${make_flag})
 
+		MESSAGE (STATUS "${package_name}: building")
 		execute_process(COMMAND make "-j${sanity.concurrency}"
 						WORKING_DIRECTORY ${build_dir}
 						RESULT_VARIABLE res)
 		if (res)
 			message (FATAL_ERROR "failed to make ${package_name} - error code ${res}")
 		endif ()
+		MESSAGE (STATUS "${package_name}: installing")
 		execute_process(COMMAND make install
 						WORKING_DIRECTORY ${build_dir}
 						RESULT_VARIABLE res)
