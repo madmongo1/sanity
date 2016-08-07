@@ -350,10 +350,12 @@ function (sanity_require)
         if (sanity.current.system STREQUAL "host")
             set (sanity.valid.libs 
                     boost
+                    asio
                     protobuf)
         elseif (sanity.current.system STREQUAL "target")
             set (sanity.valid.libs 
             		amqpcpp
+            		asio
                     boost
                     curl
                     gtest 
@@ -376,6 +378,10 @@ function (sanity_require)
 
     if (libname STREQUAL "amqpcpp")
     	sanity_require_amqpcpp (VERSION ${version})
+    endif ()
+
+    if (libname STREQUAL "asio")
+    	sanity_require_asio (VERSION ${version})
     endif ()
 
     if (libname STREQUAL "boost")
@@ -419,6 +425,7 @@ function (sanity_require)
 endfunction()
 
 
+include ("${CMAKE_CURRENT_LIST_DIR}/require_asio.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
