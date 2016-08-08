@@ -142,7 +142,7 @@ error code : ${res}"
 	if (NOT TARGET sanity::ldns)
 		add_library(sanity::ldns INTERFACE IMPORTED GLOBAL)
         target_link_libraries(sanity::ldns 
-                                INTERFACE ${LDNS_LIBRARIES} ${OPENSSL_LIBRARIES})
+                                INTERFACE ${LDNS_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_DL_LIBS})
 		set_property(TARGET sanity::ldns
 			APPEND 
 			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${LDNS_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
