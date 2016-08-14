@@ -425,6 +425,7 @@ function (sanity_require)
 endfunction()
 
 
+include ("${CMAKE_CURRENT_LIST_DIR}/add_sources.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_asio.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
