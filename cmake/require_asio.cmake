@@ -116,7 +116,7 @@ error code : ${res}"
 	find_package(Threads)
 	set(component_names ASIO_INCLUDE_DIRS ASIO_LIBRARIES ASIO_FOUND ASIO_VERSION_STRING)
 	set(ASIO_INCLUDE_DIRS "${sanity.target.local}/include")
-	set(ASIO_LIBRARIES "${sanity.target.local}/lib/libldns.a")
+	set(ASIO_LIBRARIES )
 	set(ASIO_FOUND True)
 	set(ASIO_VERSION_STRING "${version}")
 
