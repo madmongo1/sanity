@@ -64,8 +64,10 @@ function (sanity_require_asio given_version)
 
 	if (${untar_flag} IS_NEWER_THAN ${configure_flag})
 		file (MAKE_DIRECTORY ${build_dir})
+                set (ENV{CXXFLAGS} "-std=c++14")
 		MESSAGE (STATUS "${package_name}: configuring")
 		set (configure_command "${source_tree}/configure")
+                list (APPEND configure_command "CXXFLAGS=-std=c++14")
 		list (APPEND configure_command "--prefix=${sanity.target.local}")
 		list (APPEND configure_command "--with-openssl=${sanity.target.local}/ssl")
 		list (APPEND configure_command "--without-boost")
@@ -88,24 +90,26 @@ error code : ${res}"
 	if (${configure_flag} IS_NEWER_THAN ${clean_flag})
 		MESSAGE (STATUS "${package_name}: cleaning")
 		file (MAKE_DIRECTORY "${build_dir}")
-		execute_process(COMMAND make "-j${sanity.concurrency}" clean
-						WORKING_DIRECTORY ${build_dir})
+		#execute_process(COMMAND make "-j${sanity.concurrency}" clean
+		#				WORKING_DIRECTORY ${build_dir})
 		sanity_touch_flag(clean_flag)
 	endif ()
 
 	if (${clean_flag} IS_NEWER_THAN ${make_flag} OR NOT EXISTS ${make_flag})
 
 		MESSAGE (STATUS "${package_name}: building")
-		execute_process(COMMAND make "-j${sanity.concurrency}"
-						WORKING_DIRECTORY ${build_dir}
-						RESULT_VARIABLE res)
+                # Removed so that it uses library only for Linux builds
+		#execute_process(COMMAND make "-j${sanity.concurrency}"
+		#				WORKING_DIRECTORY ${build_dir}
+		#				RESULT_VARIABLE res)
 		if (res)
 			message (FATAL_ERROR "failed to make ${package_name} - error code ${res}")
 		endif ()
 		MESSAGE (STATUS "${package_name}: installing")
-		execute_process(COMMAND make install
-						WORKING_DIRECTORY ${build_dir}
-						RESULT_VARIABLE res)
+                # Removed so that it uses library only for Linux builds
+		#execute_process(COMMAND make install
+		#				WORKING_DIRECTORY ${build_dir}
+		#				RESULT_VARIABLE res)
 		if (res)
 			message (FATAL_ERROR "failed to install ${package_name} - error code ${res}")
 		endif ()
@@ -115,8 +119,9 @@ error code : ${res}"
 
 	find_package(Threads)
 	set(component_names ASIO_INCLUDE_DIRS ASIO_LIBRARIES ASIO_FOUND ASIO_VERSION_STRING)
-	set(ASIO_INCLUDE_DIRS "${sanity.target.local}/include")
-	set(ASIO_LIBRARIES )
+	set(ASIO_INCLUDE_DIRS "${source_tree}/include")
+	set(ASIO_LIBRARIES ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES} ${CMAKE_DL_LIBS})
+
 	set(ASIO_FOUND True)
 	set(ASIO_VERSION_STRING "${version}")
 
@@ -126,7 +131,7 @@ error code : ${res}"
                                 INTERFACE ${ASIO_LIBRARIES} ${OPENSSL_LIBRARIES})
 		set_property(TARGET sanity::asio
 			APPEND 
-			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${asio_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${ASIO_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 	endif ()
 
 	set (${complete_flag} TRUE)
