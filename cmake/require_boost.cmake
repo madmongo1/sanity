@@ -1,6 +1,12 @@
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_download.cmake)
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
+set (optlist "BOOST_TYPEOF_NATIVE" "BOOST_SYSTEM_NO_DEPRECATED")
+set(SANITY_BOOST_COMPILER_OPTIONS 
+    "${optlist}"
+    CACHE STRING "compiler options for sanity::boost")
+
+
 # \brief turn a version string into a boost package name
 # \brief @param outvar is the name of the variable to populate
 # \brief @param VERSION <version> is the version of boost
@@ -280,13 +286,17 @@ function (boost_build)
             file (COPY "${source_tree}/boost" DESTINATION "${prefix_path}/include")
         else ()
 #target-specific stuff should go here
+            set(compiler_options "")
+            foreach(opt IN LISTS SANITY_BOOST_COMPILER_OPTIONS)
+                set(compiler_options "${compiler_options} -D${opt}")
+            endforeach()
             set (b2_args)
             list (APPEND b2_args    "--build-dir=${build_dir}"
                                     "variant=release" 
                                     "link=static" 
                                     "threading=multi" 
                                     "runtime-link=shared" 
-                                    "cxxflags='-std=c++11 -DBOOST_TYPEOF_NATIVE -DBOOST_SYSTEM_NO_DEPRECATED'"
+                                    "cxxflags=-std=c++11 ${compiler_options}"
                                     "-j${sanity.concurrency}")
 #							"-sICU_PATH=${sanity.target.local}")
             if (APPLE)
@@ -410,7 +420,7 @@ function (boost_make_target)
 
         add_library("sanity::boost::${ARG_COMPONENT}" INTERFACE IMPORTED GLOBAL)
         target_link_libraries("sanity::boost::${ARG_COMPONENT}" 
-                                INTERFACE ${real_libs})
+                                INTERFACE ${real_libs} boost)
         set_target_properties("sanity::boost::${ARG_COMPONENT}" 
                                 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES 
                                 ${ARG_INCLUDES})
@@ -421,7 +431,7 @@ function (boost_make_target)
 
         add_library("boost::${ARG_COMPONENT}" INTERFACE IMPORTED GLOBAL)
         target_link_libraries("boost::${ARG_COMPONENT}" 
-                                INTERFACE ${real_libs})
+                                INTERFACE ${real_libs} boost)
         set_target_properties("boost::${ARG_COMPONENT}" 
                                 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES 
                                 ${ARG_INCLUDES})
@@ -445,6 +455,7 @@ function (sanity_require_boost)
     if (NOT version)
             message (FATAL_ERROR "unable to deduce version")
     endif ()
+
 
     boost_make_package_name(package_name VERSION ${version})
     boost_acquire_archive(source_gz VERSION ${version})
@@ -490,13 +501,15 @@ function (sanity_require_boost)
 #                    ${CMAKE_DL_LIBS})
         set_target_properties(boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
         set_target_properties(boost PROPERTIES 
-            INTERFACE_COMPILE_DEFINITIONS 
-            "BOOST_TYPEOF_NATIVE;BOOST_SYSTEM_NO_DEPRECATED")
+            INTERFACE_COMPILE_DEFINITIONS "${SANITY_BOOST_COMPILER_OPTIONS}")
     endif ()
 
     if (NOT TARGET sanity::boost)
             add_library (sanity::boost IMPORTED INTERFACE GLOBAL)
             target_link_libraries (sanity::boost INTERFACE boost)
+            set_target_properties(sanity::boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+            set_target_properties(sanity::boost PROPERTIES 
+                INTERFACE_COMPILE_DEFINITIONS "${SANITY_BOOST_COMPILER_OPTIONS}")
     endif ()
 
     set (BOOST_ROOT ${sanity.target.local})
