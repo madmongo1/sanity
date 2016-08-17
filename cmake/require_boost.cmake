@@ -286,7 +286,7 @@ function (boost_build)
                                     "link=static" 
                                     "threading=multi" 
                                     "runtime-link=shared" 
-                                    "cxxflags=-std=c++11"
+                                    "cxxflags='-std=c++11 -DBOOST_TYPEOF_NATIVE -DBOOST_SYSTEM_NO_DEPRECATED'"
                                     "-j${sanity.concurrency}")
 #							"-sICU_PATH=${sanity.target.local}")
             if (APPLE)
@@ -488,7 +488,10 @@ function (sanity_require_boost)
 #            target_link_libraries(boost INTERFACE 
 #                    ${CMAKE_THREAD_LIBS_INIT} 
 #                    ${CMAKE_DL_LIBS})
-            set_target_properties(boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+        set_target_properties(boost PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+        set_target_properties(boost PROPERTIES 
+            INTERFACE_COMPILE_DEFINITIONS 
+            "BOOST_TYPEOF_NATIVE;BOOST_SYSTEM_NO_DEPRECATED")
     endif ()
 
     if (NOT TARGET sanity::boost)
