@@ -72,7 +72,6 @@ function (sanity_require_curl given_version)
 		list (APPEND configure_command "--disable-ldaps")
 		list (APPEND configure_command "--without-libidn")
                 list (APPEND configure_command "--without-zlib")
-
 		execute_process(COMMAND ${configure_command} 
 				    	WORKING_DIRECTORY ${build_dir}
 				    	RESULT_VARIABLE res)
@@ -118,6 +117,15 @@ error code : ${res}"
 	set(CURL_LIBRARIES "${sanity.target.local}/lib/libcurl.a")
 	set(CURL_FOUND True)
 	set(CURL_VERSION_STRING "${version}")
+
+	if (NOT TARGET curl)
+		add_library(curl INTERFACE IMPORTED GLOBAL)
+        target_link_libraries(curl 
+                                INTERFACE ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES})
+		set_property(TARGET curl
+			APPEND 
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CURL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
+	endif ()
 
 	if (NOT TARGET sanity::curl)
 		add_library(sanity::curl INTERFACE IMPORTED GLOBAL)
