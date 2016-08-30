@@ -6,8 +6,10 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
 function (sanity_require_protobuf given_version)
 
-	set (versions 3.0.0-beta-3)
-	set (hashes 89afd3855f2d4782e59c09e07d9efa67)
+	#set (versions 3.0.0-beta-3)
+	set (versions master)
+	#set (hashes 89afd3855f2d4782e59c09e07d9efa67)
+	set (hashes a51101921b634534ca9789cc21d85c9f)
 	sanity_back(versions latest_version)
 
 	sanity_deduce_version(${given_version} versions protobuf version version_index)
@@ -20,7 +22,7 @@ function (sanity_require_protobuf given_version)
 	endif ()
 
 	set (package_name "protobuf-${version}")
-	set (source_url "https://github.com/google/protobuf/archive/v${version}.tar.gz")
+	set (source_url "https://github.com/google/protobuf/archive/${version}.tar.gz")
 	set (source_gz "${sanity.source.cache.archive}/${package_name}.tar.gz")
 	set (tool_build_dir "${sanity.host.build}/${package_name}")
 	set (build_dir "${sanity.target.build}/${package_name}")
