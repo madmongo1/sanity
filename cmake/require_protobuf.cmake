@@ -7,9 +7,9 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 function (sanity_require_protobuf given_version)
 
 	#set (versions 3.0.0-beta-3)
-	set (versions master)
+	set (versions 8c936063570e5ede2ac41cf49aefe1075f1c7251)
 	#set (hashes 89afd3855f2d4782e59c09e07d9efa67)
-	set (hashes a51101921b634534ca9789cc21d85c9f)
+	set (hashes e9dd2d9750e32ed9f5f2f140fd02d6ba)
 	sanity_back(versions latest_version)
 
 	sanity_deduce_version(${given_version} versions protobuf version version_index)
