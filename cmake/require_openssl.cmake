@@ -112,14 +112,14 @@ error code : ${res}"
 		sanity_touch_flag (make_flag)
 	endif ()
 
+        find_package(Threads)
+
 	set (OPENSSL_FOUND TRUE)
 	set (OPENSSL_INCLUDE_DIR "${sanity.target.local}/ssl/include")
 	set (OPENSSL_CRYPTO_LIBRARY "${sanity.target.local}/ssl/lib/libcrypto.a")
 	set (OPENSSL_SSL_LIBRARY "${sanity.target.local}/ssl/lib/libssl.a")
-	set (OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
+	set (OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 	set (OPENSSL_VERSION "${version}")
-
-	find_package(Threads)
 
 	if (NOT TARGET sanity::crypto)
 		add_library(sanity::crypto INTERFACE IMPORTED GLOBAL)
