@@ -22,6 +22,7 @@ function (sanity_require_mysql mysql_version)
 	set (source_url "https://dev.mysql.com/get/Downloads/Connector-C/${package_name}.tar.gz")
 	set (source_gz "${sanity.source.cache.archive}/${package_name}.tar.gz")
 	set (build_dir ${sanity.target.build}/${package_name})
+	set (install_prefix "${sanity.target.local}")
 	list (GET hashes ${version_index} source_hash)
 
 	if (NOT EXISTS ${source_url})
@@ -56,7 +57,7 @@ function (sanity_require_mysql mysql_version)
 		execute_process(
     		COMMAND ${CMAKE_COMMAND}
 			-DCMAKE_CXX_FLAGS=-std=c++11 
-			-DCMAKE_INSTALL_PREFIX=${sanity.target.local} 
+			-DCMAKE_INSTALL_PREFIX="${install_prefix}" 
 			${source_tree}
     		WORKING_DIRECTORY ${build_dir}
     		RESULT_VARIABLE res
@@ -79,9 +80,9 @@ function (sanity_require_mysql mysql_version)
 	endif ()
 
 	set (MySQL_Found 1)
-	set (MySQL_INCLUDE_DIRS ${sanity.target.local}/include)
-	set (MySQL_LIBRARY_DIRS ${sanity.target.local}/lib)
-	set (MySQL_LIBRARIES ${sanity.target.local}/lib/libmysqlclient_r.a)
+	set (MySQL_INCLUDE_DIRS "${install_prefix}/include")
+	set (MySQL_LIBRARY_DIRS "${install_prefix}/lib")
+	set (MySQL_LIBRARIES ${install_prefix}/lib/libmysqlclient_r.a)
 
 	find_package(Threads)
 	if (NOT TARGET mysql)
@@ -90,6 +91,16 @@ function (sanity_require_mysql mysql_version)
 			${MySQL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
 			${CMAKE_DL_LIBS})
 		set_property(TARGET mysql 
+			APPEND 
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MySQL_INCLUDE_DIRS})
+	endif ()
+
+	if (NOT TARGET sanity::mysql)
+		add_library(sanity::mysql INTERFACE IMPORTED GLOBAL)
+		target_link_libraries(sanity::mysql INTERFACE 
+			${MySQL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} 
+			${CMAKE_DL_LIBS})
+		set_property(TARGET sanity::mysql 
 			APPEND 
 			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MySQL_INCLUDE_DIRS})
 	endif ()
