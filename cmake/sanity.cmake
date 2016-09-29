@@ -364,7 +364,8 @@ function (sanity_require)
                     openssl
                     protobuf
                     mysql 
-                    mysqlcppcon)
+                    mysqlcppcon
+                    sdl)
         else ()
             message (FATAL_ERROR "sanity.current.target=${sanity.current.target}")
         endif ()
@@ -420,6 +421,10 @@ function (sanity_require)
     	sanity_require_curl (${version})
     endif ()
 
+    if (libname STREQUAL "sdl")
+    	sanity_require_sdl (${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -437,6 +442,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_protobuf.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_curl.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_amqpcpp.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_sdl.cmake")
 
 sanity_dump ()
 
