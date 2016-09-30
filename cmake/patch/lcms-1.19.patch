@@ -1,0 +1,13 @@
+diff --git a/include/icc34.h b/include/icc34.h
+index 6ac4625..cf1a5a6 100755
+--- a/include/icc34.h
++++ b/include/icc34.h
+@@ -144,7 +144,7 @@ authorization from SunSoft Inc.
+  */
+ 
+ 
+-#ifdef PACKAGE_NAME
++#ifdef UNDO_THIS_NONSENSE_PACKAGE_NAME
+ /*
+   June 9, 2003, Adapted for use with configure by Bob Friesenhahn
+   Added the stupid check for autoconf by Marti Maria. 

@@ -381,6 +381,7 @@ function (sanity_require)
                     gtest 
                     icu
                     jpeg
+                    lcms
                     ldns
                     openssl
                     protobuf
@@ -431,6 +432,10 @@ function (sanity_require)
     	sanity_require_jpeg(${version})
 	endif ()
 
+    if (libname STREQUAL "lcms")
+    	sanity_require_lcms(${version})
+	endif ()
+
     if (libname STREQUAL "mysql")
     	sanity_require_mysql (${version})
     endif ()
@@ -471,6 +476,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_devil.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_jpeg.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_lcms.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_ldns.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")

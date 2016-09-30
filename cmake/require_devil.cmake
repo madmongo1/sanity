@@ -23,6 +23,7 @@ function (sanity_require_devil given_version)
 	sanity_require(LIBRARY sdl VERSION any)
 	sanity_require(LIBRARY jpeg VERSION any)
 	sanity_require(LIBRARY tiff VERSION any)
+	sanity_require(LIBRARY lcms VERSION any)
 
 	set (repo_name libdevil)
 	set (package_name "${library}-${version}")
