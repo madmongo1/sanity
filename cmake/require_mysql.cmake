@@ -37,6 +37,9 @@ function (sanity_require_mysql mysql_version)
 
 	set (source_tree "${sanity.source.cache.source}/${package_name}")
 
+	message(STATUS "building library target")
+	sanity_dump_n(package_name flag_base source_url source_gz build_dir install_prefix source_tree)
+
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
 	if ("${source_gz}" IS_NEWER_THAN "${untar_flag}"
 		OR "${source_gz}" IS_NEWER_THAN ${source_tree})
@@ -51,13 +54,13 @@ function (sanity_require_mysql mysql_version)
 	    sanity_touch_flag(untar_flag)
 	 endif()
 
-	sanity_make_flag(configure_flag "source.cache" "${package_name}" "configure")
+ 	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
 	if (${untar_flag} IS_NEWER_THAN ${configure_flag} OR NOT EXISTS ${build_dir})
 		file(MAKE_DIRECTORY ${build_dir})
 		execute_process(
     		COMMAND ${CMAKE_COMMAND}
 			-DCMAKE_CXX_FLAGS=-std=c++11 
-			-DCMAKE_INSTALL_PREFIX="${install_prefix}" 
+			-DCMAKE_INSTALL_PREFIX=${install_prefix} 
 			${source_tree}
     		WORKING_DIRECTORY ${build_dir}
     		RESULT_VARIABLE res
@@ -68,7 +71,7 @@ function (sanity_require_mysql mysql_version)
 		sanity_touch_flag (configure_flag)
 	endif ()
 
-	sanity_make_flag(make_flag "source.cache" "${package_name}" "make")
+	sanity_make_flag(make_flag "target" "${package_name}" "make")
 	if (${configure_flag} IS_NEWER_THAN ${make_flag})
 		execute_process(COMMAND make "-j${sanity.concurrency}" install 
 						WORKING_DIRECTORY ${build_dir}
