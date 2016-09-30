@@ -51,7 +51,6 @@ function (sanity_require_lcms given_version)
 	endif ()
 
 	sanity_make_flag(untar_flag "source.cache" "${package_name}" "untar")
-	sanity_make_flag(patch_flag "source.cache" "${package_name}" "patch")
 	sanity_make_flag(configure_flag "target" "${package_name}" "configure")
 
 	if (NOT EXISTS ${source_tree})
@@ -62,14 +61,6 @@ function (sanity_require_lcms given_version)
 	    	message(FATAL_ERROR "error in command tar xzf ${source_gz} : ${res}")
 	    endif ()
 
-		sanity_touch_flag(untar_flag)
-	endif()
-
-	if (NOT EXISTS ${untar_flag})
-		sanity_touch_flag(untar_flag)
-	endif ()
-
-	if (${untar_flag} IS_NEWER_THAN ${patch_flag})
 		if ("${version}" STREQUAL "1.19")
 			set (patch_file "${sanity.root}/patch/${library}-${version}.patch")
 
@@ -84,16 +75,21 @@ function (sanity_require_lcms given_version)
 				MESSAGE(FATAL_ERROR "during patch: ${res}") 
 			endif ()
 		endif ()
-		sanity_touch_flag(patch_flag)
+
+		sanity_touch_flag(untar_flag)
+	endif()
+
+	if (NOT EXISTS ${untar_flag})
+		sanity_touch_flag(untar_flag)
 	endif ()
 
 	set(untar_newer FALSE)
-	if (${patch_flag} IS_NEWER_THAN ${configure_flag})
+	if (${untar_flag} IS_NEWER_THAN ${configure_flag})
 		set(untar_newer TRUE)
 	endif ()
 
 	set(build_older FALSE)
-	if (${patch_flag} IS_NEWER_THAN ${build_dir})
+	if (${untar_flag} IS_NEWER_THAN ${build_dir})
 		set(build_older TRUE)
 	endif ()
 

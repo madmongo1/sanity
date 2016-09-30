@@ -125,7 +125,8 @@ error code : ${res}"
 
 	set(component_names TIFF_FOUND TIFF_INCLUDE_DIR TIFF_LIBRARIES TIFF_LIBRARY TIFF_VERSION)
 	if (NOT TARGET sanity::tiff)
-		add_library(sanity::tiff INTERFACE IMPORTED GLOBAL ${TIFF_LIBRARIES})
+		add_library(sanity::tiff INTERFACE IMPORTED GLOBAL )
+		target_link_libraries(sanity::tiff INTERFACE ${TIFF_LIBRARIES})
 		set_property(TARGET sanity::tiff
 			APPEND 
 			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${TIFF_INCLUDE_DIRS})
