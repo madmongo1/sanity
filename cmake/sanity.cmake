@@ -377,14 +377,17 @@ function (sanity_require)
             		asio
                     boost
                     curl
+                    devil
                     gtest 
                     icu
+                    jpeg
                     ldns
                     openssl
                     protobuf
                     mysql 
                     mysqlcppcon
-                    sdl)
+                    sdl
+                    tiff)
         else ()
             message (FATAL_ERROR "sanity.current.target=${sanity.current.target}")
         endif ()
@@ -408,6 +411,10 @@ function (sanity_require)
     	sanity_require_boost (VERSION ${version} COMPONENTS ${components})
     endif ()
 
+    if (libname STREQUAL "devil")
+    	sanity_require_devil (${version})
+    endif ()
+
     if (libname STREQUAL "ldns")
     	sanity_require_ldns (${version})
     endif ()
@@ -418,6 +425,10 @@ function (sanity_require)
 
     if (libname STREQUAL "icu")
     	sanity_require_icu(${version})
+	endif ()
+
+    if (libname STREQUAL "jpeg")
+    	sanity_require_jpeg(${version})
 	endif ()
 
     if (libname STREQUAL "mysql")
@@ -444,6 +455,10 @@ function (sanity_require)
     	sanity_require_sdl (${version})
     endif ()
 
+    if (libname STREQUAL "tiff")
+    	sanity_require_tiff (${version})
+    endif ()
+
 	sanity_propagate_vars()
 
 endfunction()
@@ -452,8 +467,10 @@ endfunction()
 include ("${CMAKE_CURRENT_LIST_DIR}/add_sources.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_asio.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_boost.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_devil.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_gtest.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_jpeg.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_ldns.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
@@ -462,6 +479,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_protobuf.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_curl.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_amqpcpp.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_sdl.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_tiff.cmake")
 
 sanity_dump ()
 
