@@ -383,6 +383,7 @@ function (sanity_require)
                     jpeg
                     lcms
                     ldns
+                    libmng
                     openssl
                     protobuf
                     mysql 
@@ -436,6 +437,10 @@ function (sanity_require)
     	sanity_require_lcms(${version})
 	endif ()
 
+    if (libname STREQUAL "libmng")
+    	sanity_require_libmng(${version})
+	endif ()
+
     if (libname STREQUAL "mysql")
     	sanity_require_mysql (${version})
     endif ()
@@ -478,6 +483,7 @@ include ("${CMAKE_CURRENT_LIST_DIR}/require_icu.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_jpeg.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_lcms.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_ldns.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/require_libmng.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysql.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_mysqlcppcon.cmake")
 include ("${CMAKE_CURRENT_LIST_DIR}/require_openssl.cmake")

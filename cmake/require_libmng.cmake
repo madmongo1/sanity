@@ -1,11 +1,11 @@
 include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 
 
-function (sanity_require_devil given_version)
+function (sanity_require_libmng given_version)
 
-	set (library devil)
-	set (versions 1.7.8)
-	set (hashes 1.7.8)
+	set (library libmng)
+	set (versions 1.0.10)
+	set (hashes 1.0.10)
 	sanity_back(versions latest_version)
 
 	sanity_deduce_version(${given_version} versions ${library} version version_index)
@@ -20,13 +20,9 @@ function (sanity_require_devil given_version)
 		return ()
 	endif ()
 
-	sanity_require(LIBRARY sdl VERSION any)
 	sanity_require(LIBRARY jpeg VERSION any)
-	sanity_require(LIBRARY tiff VERSION any)
-	sanity_require(LIBRARY lcms VERSION any)
-	sanity_require(LIBRARY libmng VERSION any)
 
-	set (repo_name libdevil)
+	set (repo_name libmng)
 	set (package_name "${library}-${version}")
 	set (flag_base ${sanity.source.cache.flags}/)
 
@@ -44,7 +40,7 @@ function (sanity_require_devil given_version)
 		if (EXISTS "${master_repo}")
 			FILE (REMOVE_RECURSE "${master_repo}")
 		endif ()
-		execute_process(COMMAND "git" "clone" "https://github.com/LuaDist/${repo_name}.git"
+		execute_process(COMMAND "git" "clone" "https://github.com/madmongo1/${repo_name}.git"
 								"--mirror"
 								"--progress"
 			    	WORKING_DIRECTORY ${master_repo_base}
@@ -117,9 +113,6 @@ function (sanity_require_devil given_version)
 		sanity_touch_flag(configure)
 	endif ()
 
-message(FATAL_ERROR "requires jpeg")
-
-
 	sanity_make_current_system_flag(clean PACKAGE "${package_name}" FUNCTION "clean")
 	sanity_make_current_system_flag(build PACKAGE "${package_name}" FUNCTION "build")
 	sanity_make_current_system_flag(install PACKAGE "${package_name}" FUNCTION "install")
@@ -143,19 +136,19 @@ message(FATAL_ERROR "requires jpeg")
 	endif ()
 
 
-	set(component_names AMQPCPP_INCLUDE_DIRS AMQPCPP_LIBRARIES AMQPCPP_FOUND AMQPCPP_VERSION_STRING)
-	set(AMQPCPP_INCLUDE_DIRS "${target_local}/include")
-	set(AMQPCPP_LIBRARIES "${target_local}/lib/libamqp-cpp.a")
-	set(AMQPCPP_FOUND True)
-	set(AMQPCPP_VERSION_STRING "${version}")
+	set(component_names LIBMNG_INCLUDE_DIRS LIBMNG_LIBRARIES LIBMNG_FOUND LIBMNG_VERSION_STRING)
+	set(LIBMNG_INCLUDE_DIRS "${target_local}/include")
+	set(LIBMNG_LIBRARIES "${target_local}/lib/libamqp-cpp.a")
+	set(LIBMNG_FOUND True)
+	set(LIBMNG_VERSION_STRING "${version}")
 
-	if (NOT TARGET sanity::amqpcpp)
-		add_library(sanity::amqpcpp INTERFACE IMPORTED GLOBAL)
-        target_link_libraries(sanity::amqpcpp 
-                                INTERFACE ${AMQPCPP_LIBRARIES})
-		set_property(TARGET sanity::amqpcpp
+	if (NOT TARGET sanity::libmng)
+		add_library(sanity::libmng INTERFACE IMPORTED GLOBAL)
+        target_link_libraries(sanity::libmng 
+                                INTERFACE ${LIBMNG_LIBRARIES})
+		set_property(TARGET sanity::libmng
 			APPEND 
-			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${AMQPCPP_INCLUDE_DIRS})
+			PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${LIBMNG_INCLUDE_DIRS})
 	endif ()
 
 	set (${complete_flag} TRUE)
