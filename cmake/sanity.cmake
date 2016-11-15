@@ -48,10 +48,12 @@ endif ()
 
 # set up location variables for all future sanity builds
 
-if (NOT sanity.source.cache)
-	set (sanity.source.cache "$ENV{HOME}/.sanity-cache" CACHE PATH "cache directory for sanity downloads")
-endif ()
-file(MAKE_DIRECTORY ${sanity.source.cache})
+set(sanity.cache "$ENV{HOME}/.sanity-cache" CACHE PATH "sanity's cache root")
+set (sanity.source.cache "${sanity.cache}")
+file(MAKE_DIRECTORY ${sanity.cache})
+set (sanity.cache.flags ${sanity.cache}/flags)
+set (sanity.cache.archive ${sanity.cache}/archive)
+set (sanity.cache.source ${sanity.cache}/src)
 
 if (NOT sanity.source.cache.flags)
 	set (sanity.source.cache.flags "${sanity.source.cache}/flags" CACHE PATH "cache directory for sanity downloads")
