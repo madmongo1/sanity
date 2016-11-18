@@ -69,13 +69,13 @@ function(sanity_require_c_ares given_version)
         message(STATUS "########")
         message(STATUS "building ${package_name}")
         message(STATUS "########")
-        execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} "-j${sanity.concurrency}"
+        execute_process(COMMAND "make" "-j${sanity.concurrency}"
                 WORKING_DIRECTORY "${build_dir}"
                 RESULT_VARIABLE res)
         if (res)
             message(FATAL_ERROR "build failed: ${res}")
         endif ()
-        execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} "install"
+        execute_process(COMMAND "make" "install"
                 WORKING_DIRECTORY "${build_dir}"
                 RESULT_VARIABLE res)
         if (res)
