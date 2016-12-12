@@ -463,7 +463,7 @@ function(sanity_require_boost)
             "${oneValueArgs}" "${multiValueArgs}"
             ${ARGN})
 
-    set(versions 1.60.0)
+    set(versions 1.60.0 1.61.0)
     sanity_back(versions latest_version)
     sanity_deduce_version(${ARG_VERSION} versions boost version version_index)
     if (NOT version)
