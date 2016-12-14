@@ -82,12 +82,19 @@ function (sanity_require_mysql mysql_version)
 		sanity_touch_flag (make_flag)
 	endif ()
 
+	find_package(Threads)
+
 	set (MySQL_Found 1)
 	set (MySQL_INCLUDE_DIRS "${install_prefix}/include")
 	set (MySQL_LIBRARY_DIRS "${install_prefix}/lib")
-	set (MySQL_LIBRARIES ${install_prefix}/lib/libmysqlclient_r.a)
+	set (MySQL_LIBRARIES ${install_prefix}/lib/libmysqlclient_r.a ${CMAKE_THREAD_LIBS_INIT})
 
-	find_package(Threads)
+	set(MYSQL_FOUND ${MySQL_Found} CACHE BOOL "set by sanity" FORCE)
+	set(MYSQL_INCLUDE_DIRS ${MySQL_INCLUDE_DIRS} CACHE PATH "set by sanity" FORCE)
+	set(MYSQL_LIBRARY_DIRS ${MySQL_LIBRARY_DIRS} CACHE PATH "set by sanity" FORCE)
+	set(MYSQL_LIBRARIES ${MySQL_LIBRARIES} CACHE STRING "set by sanity" FORCE)
+	set(MYSQL_VERSION_STRING "${version}" CACHE STRING "set by sanity" FORCE)
+
 	if (NOT TARGET mysql)
 		add_library(mysql INTERFACE IMPORTED GLOBAL)
 		target_link_libraries(mysql INTERFACE 
