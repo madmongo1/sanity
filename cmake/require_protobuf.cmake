@@ -228,10 +228,10 @@ function(sanity_require_protobuf given_version)
     if (NOT TARGET sanity::protobuf)
         add_library(sanity::protobuf INTERFACE IMPORTED GLOBAL)
         target_link_libraries(sanity::protobuf INTERFACE
-                ${PROTOBUF_LIBRARY})
+                ${Protobuf_LIBRARIES})
         set_property(TARGET sanity::protobuf
                 APPEND
-                PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PROTOBUF_INCLUDE_DIRS})
+                PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${Protobuf_INCLUDE_DIRS})
     endif ()
 
     set(sanity.require_protobuf.complete TRUE)
@@ -269,7 +269,7 @@ function(protobuf_configure_files)
             set(src "${fileroot}.pb.cc")
             add_custom_command(OUTPUT ${hdr} ${src}
                     DEPENDS ${proto}
-                    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE}
                     ARGS ${options}
                     "--cpp_out=${CMAKE_CURRENT_BINARY_DIR}"
                     ${proto}
