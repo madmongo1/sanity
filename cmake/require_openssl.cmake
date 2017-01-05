@@ -97,7 +97,7 @@ error code : ${res}"
 
     sanity_make_flag(make_flag "target" "${package_name}" "make")
     if (${make_depend_flag} IS_NEWER_THAN ${make_flag})
-        execute_process(COMMAND make "-j${sanity.concurrency}"
+        execute_process(COMMAND make
                 WORKING_DIRECTORY ${build_dir}
                 RESULT_VARIABLE res)
         if (res)
