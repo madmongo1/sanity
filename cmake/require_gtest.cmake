@@ -142,7 +142,7 @@ function(sanity_require_gtest version_arg)
     #    sanity_propagate_value (NAME GTEST_ROOT VALUE "${sanity.target.local}")
     sanity_propagate_value(NAME GTEST_LIBRARY VALUE "${sanity.target.local}/lib/libgtest.a")
     sanity_propagate_value(NAME GTEST_INCLUDE_DIR VALUE "${sanity.target.local}/include")
-    sanity_propagate_value(NAME sGTEST_MAIN_LIBRARY VALUE "${sanity.target.local}/lib/libgtest_main.a")
+    sanity_propagate_value(NAME GTEST_MAIN_LIBRARY VALUE "${sanity.target.local}/lib/libgtest_main.a")
 
     if (NOT TARGET sanity::gtest)
         add_library(sanity::gtest INTERFACE IMPORTED GLOBAL)
