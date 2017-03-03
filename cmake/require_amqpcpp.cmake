@@ -4,8 +4,8 @@ include (${CMAKE_CURRENT_LIST_DIR}/sanity_deduce_version.cmake)
 function (sanity_require_amqpcpp given_version)
 
 	set (library amqpcpp)
-	set (versions 2.6.1)
-	set (hashes 383914c0c7468c720c51e06bd5f0655fa7d0f3bf)
+	set (versions 2.6.1 2.6.2)
+	set (hashes v2.6.1 v2.6.2)
 	sanity_back(versions latest_version)
 
 	sanity_deduce_version(${given_version} versions ${library} version version_index)
@@ -38,7 +38,7 @@ function (sanity_require_amqpcpp given_version)
 		if (EXISTS "${master_repo}")
 			FILE (REMOVE_RECURSE "${master_repo}")
 		endif ()
-		execute_process(COMMAND "git" "clone" "https://github.com/madmongo1/${repo_name}.git"
+		execute_process(COMMAND "git" "clone" "git@github.com:CopernicaMarketingSoftware/AMQP-CPP.git"
 								"--mirror"
 								"--progress"
 			    	WORKING_DIRECTORY ${master_repo_base}
