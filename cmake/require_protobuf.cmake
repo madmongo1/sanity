@@ -214,7 +214,7 @@ function(sanity_require_protobuf given_version)
     set(Protobuf_LITE_LIBRARY "${sanity.target.local}/lib/libprotobuf-lite.a" CACHE PATH "set by sanity" FORCE)
     set(Protobuf_PROTOC_EXECUTABLE "${sanity.host.local}/bin/protoc" CACHE PATH "set by sanity" FORCE)
 
-    set(Protobuf_FOUND_FOUND TRUE CACHE BOOL "set by sanity" FORCE)
+    set(Protobuf_FOUND TRUE CACHE BOOL "set by sanity" FORCE)
     set(Protobuf_INCLUDE_DIRS "${sanity.target.local}/include" CACHE PATH "set by sanity" FORCE)
     set(Protobuf_INCLUDE_DIR "${sanity.target.local}/include" CACHE PATH "set by sanity" FORCE)
     set(Protobuf_VERSION "3.0.0" CACHE STRING "set by sanity" FORCE)
